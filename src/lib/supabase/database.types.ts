@@ -1031,6 +1031,10 @@ export type Database = {
         }
         Returns: Database["public"]["Tables"]["knowledge_progress"]["Row"]
       }
+      set_growth_profile: {
+        Args: { p_focus_codes: string[]; p_overall_goal: string }
+        Returns: undefined
+      }
     }
     Enums: {
       [_ in never]: never

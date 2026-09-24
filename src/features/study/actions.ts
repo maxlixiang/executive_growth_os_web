@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { requireUser } from "@/lib/auth/require-user";
 import { generateStudyQuestions, evaluateStudyAnswers } from "@/features/ai/teacher";
+import { buildGrowthContext } from "@/features/ai/context-builder";
 import { getKnowledgeWorkspace } from "@/features/knowledge/queries";
 
 const uuidSchema = z.string().uuid();
@@ -14,15 +15,6 @@ const answerSchema = z.object({
 });
 
 type Result<T> = { ok: true; data: T } | { ok: false; error: string };
-
-function contextFor(workspace: Awaited<ReturnType<typeof getKnowledgeWorkspace>>, conceptCode: string) {
-  const progress = workspace.progress[conceptCode];
-  return JSON.stringify({
-    current_focus: workspace.focusCapabilities,
-    current_progress: progress ?? null,
-    recent_knowledge_gaps: workspace.recentGapText || null,
-  });
-}
 
 function safeMessage(error: unknown) {
   console.error("Study workflow error", error);
@@ -42,7 +34,8 @@ export async function startStudyAttempt(conceptId: string, sessionType: "study" 
     const [{ supabase, user }, workspace] = await Promise.all([requireUser(), getKnowledgeWorkspace()]);
     const concept = workspace.concepts.find((item) => item.id === parsedId.data);
     if (!concept) return { ok: false, error: "找不到这个知识点。" };
-    const questions = await generateStudyQuestions(concept, contextFor(workspace, concept.code));
+    const context = await buildGrowthContext(supabase, user.id, concept.capabilityId);
+    const questions = await generateStudyQuestions(concept, context);
     const { data, error } = await supabase.from("study_attempts").insert({
       user_id: user.id,
       concept_id: concept.id,
@@ -73,9 +66,10 @@ export async function evaluateStudyAttempt(input: z.infer<typeof answerSchema>):
     if (error || !attempt) return { ok: false, error: "这次学习已取消、过期或不存在。" };
     const concept = workspace.concepts.find((item) => item.id === attempt.concept_id);
     if (!concept) return { ok: false, error: "找不到这个知识点。" };
+    const context = await buildGrowthContext(supabase, user.id, concept.capabilityId);
     const evaluation = await evaluateStudyAnswers({
       concept,
-      context: contextFor(workspace, concept.code),
+      context,
       recallQuestion: attempt.recall_question,
       recallAnswer: parsed.data.recallAnswer,
       applicationQuestion: attempt.application_question,

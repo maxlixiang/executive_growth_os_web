@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { analyzeDaily, type DailyAnalysis } from "@/features/ai/daily-analyzer";
-import { getKnowledgeWorkspace } from "@/features/knowledge/queries";
+import { buildGrowthContext } from "@/features/ai/context-builder";
 import { requireUser } from "@/lib/auth/require-user";
 
 const captureSchema = z.object({
@@ -15,16 +15,8 @@ const captureSchema = z.object({
 
 export type CaptureState = { ok: boolean; message: string; captureId?: string; dailyId?: string };
 
-function aiContext(workspace: Awaited<ReturnType<typeof getKnowledgeWorkspace>>) {
-  return JSON.stringify({
-    current_focus: workspace.focusCapabilities,
-    knowledge_progress: workspace.progress,
-    recent_knowledge_gaps: workspace.recentGapText || null,
-  });
-}
-
 async function persistCapture(input: z.infer<typeof captureSchema>): Promise<CaptureState> {
-  const [{ supabase, user }, workspace] = await Promise.all([requireUser(), getKnowledgeWorkspace()]);
+  const { supabase, user } = await requireUser();
   const { data: capture, error: insertError } = await supabase.from("capture_entries").insert({
     user_id: user.id,
     title: input.title || null,
@@ -38,7 +30,8 @@ async function persistCapture(input: z.infer<typeof captureSchema>): Promise<Cap
 
   try {
     await supabase.from("capture_entries").update({ analysis_status: "processing" }).eq("id", capture.id).eq("user_id", user.id);
-    const analysis = await analyzeDaily(input.content, aiContext(workspace));
+    const context = await buildGrowthContext(supabase, user.id);
+    const analysis = await analyzeDaily(input.content, context);
     const analysisForStorage = {
       ...analysis,
       analysis: analysis.practice_suggestions.length
