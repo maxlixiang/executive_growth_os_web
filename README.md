@@ -1,36 +1,56 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Executive Growth OS Web
 
-## Getting Started
+Executive Growth OS 的独立 Mobile-first Web App。它把课程标准、主动回忆、真实工作、AI 反馈、间隔复习和周期考核连接成长期成长闭环。
 
-First, run the development server:
+本仓库与 Executive Growth OS CLI、Career OS 和大米的小站完全独立，不共享数据库，不同步或迁移私人用户数据。
 
-```bash
+## 技术栈
+
+- Next.js 16 App Router
+- React 19 + TypeScript strict
+- Tailwind CSS 4
+- Supabase Auth / Postgres / RLS
+- Zod
+- DeepSeek API（仅服务端）
+
+## 本地运行
+
+```powershell
+Copy-Item .env.example .env.local
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+在独立 Supabase Project 建立后填写：
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```dotenv
+NEXT_PUBLIC_SUPABASE_URL=
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=
+SUPABASE_SECRET_KEY=
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+DeepSeek 环境变量：
 
-## Learn More
+```dotenv
+DEEPSEEK_API_KEY=
+DEEPSEEK_MODEL=deepseek-chat
+DEEPSEEK_BASE_URL=https://api.deepseek.com
+```
 
-To learn more about Next.js, take a look at the following resources:
+不得创建 `NEXT_PUBLIC_DEEPSEEK_API_KEY`。
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+未配置 Supabase 时，Dashboard 只在 `next dev` 中作为 W1 视觉预览开放；production 默认关闭并跳转到 `/login`。
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## 验证
 
-## Deploy on Vercel
+```powershell
+npm run typecheck
+npm run lint
+npm run build
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+数据库 migration 位于 `supabase/migrations/`。共享课程表仅允许 authenticated 用户读取；所有私人表直接包含 `user_id` 并启用 RLS。
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## 当前阶段
+
+W1：项目初始化、Supabase Auth/RLS 基础、Mobile App Shell、Dashboard Skeleton。
