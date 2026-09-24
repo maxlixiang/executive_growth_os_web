@@ -1015,9 +1015,43 @@ export type Database = {
         Args: { p_attempt_id: string }
         Returns: Database["public"]["Tables"]["study_sessions"]["Row"]
       }
+      complete_quarterly_review: {
+        Args: {
+          p_assessment_markdown: string
+          p_capability_assessments: Json
+          p_executive_level_gaps: Json
+          p_knowledge_gaps: Json
+          p_next_quarter_focus: string[]
+          p_practice_gaps: Json
+          p_recent_training_direction: string
+          p_session_id: string
+          p_strengths: Json
+          p_summary: string
+          p_weaknesses: Json
+        }
+        Returns: Database["public"]["Tables"]["quarterly_reviews"]["Row"]
+      }
       finalize_capture_analysis: {
         Args: { p_analysis: Json; p_capture_id: string }
         Returns: Database["public"]["Tables"]["daily_reflections"]["Row"]
+      }
+      finalize_monthly_review: {
+        Args: {
+          p_capability_assessments: Json
+          p_focus_codes: string[]
+          p_knowledge_gaps: Json
+          p_period_end: string
+          p_period_start: string
+          p_practice_gaps: Json
+          p_recent_training_direction: string
+          p_recommended_concept_ids: Json
+          p_recommended_practice_challenges: Json
+          p_review_markdown: string
+          p_strengths: Json
+          p_summary: string
+          p_weaknesses: Json
+        }
+        Returns: Database["public"]["Tables"]["monthly_reviews"]["Row"]
       }
       rebuild_knowledge_progress: {
         Args: { p_concept_id: string; p_user_id: string }
@@ -1034,6 +1068,10 @@ export type Database = {
       set_growth_profile: {
         Args: { p_focus_codes: string[]; p_overall_goal: string }
         Returns: undefined
+      }
+      start_quarterly_interview: {
+        Args: { p_period_end: string; p_period_start: string }
+        Returns: Database["public"]["Tables"]["interview_sessions"]["Row"]
       }
     }
     Enums: {
