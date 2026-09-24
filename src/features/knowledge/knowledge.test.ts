@@ -53,6 +53,16 @@ describe("study next parity", () => {
     expect(recommendNext({ concepts, progress, focusCapabilities: ["Finance"], recentGapText: "Working Capital / 营运资本", today: "2026-09-24" })?.concept.code).toBe("working_capital");
   });
 
+  it("prioritizes an eligible recent gap before curriculum fallback when no focus exists", () => {
+    expect(recommendNext({
+      concepts,
+      progress: {},
+      focusCapabilities: [],
+      recentGapText: "应收账款周转率需要补足 / Accounts Receivable",
+      today: "2026-09-24",
+    })?.concept.code).toBe("accounts_receivable");
+  });
+
   it("blocks an unmet prerequisite and leaves due work for quiz", () => {
     const progress = { accounts_receivable: snapshot({ status: "learning", nextReviewAt: "2026-09-24" }) };
     expect(recommendNext({ concepts, progress, focusCapabilities: ["Finance"], recentGapText: "Working Capital", today: "2026-09-24" })?.concept.code).toBe("business_model");

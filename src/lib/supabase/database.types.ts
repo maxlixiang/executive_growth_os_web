@@ -1015,6 +1015,10 @@ export type Database = {
         Args: { p_attempt_id: string }
         Returns: Database["public"]["Tables"]["study_sessions"]["Row"]
       }
+      finalize_capture_analysis: {
+        Args: { p_analysis: Json; p_capture_id: string }
+        Returns: Database["public"]["Tables"]["daily_reflections"]["Row"]
+      }
       rebuild_knowledge_progress: {
         Args: { p_concept_id: string; p_user_id: string }
         Returns: Database["public"]["Tables"]["knowledge_progress"]["Row"]

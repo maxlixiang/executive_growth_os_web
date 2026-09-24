@@ -42,12 +42,12 @@ export function recommendNext({
     const focusIndex = focusCapabilities.findIndex(
       (item) => normalize(item) === normalize(concept.capability),
     );
-    const capabilityRank = focusIndex >= 0
-      ? [0, focusIndex]
-      : [1, capabilityFallback.indexOf(concept.capability)];
     const gapRank = mentionedInGaps(concept, recentGapText) ? 0 : 1;
     const masteryRank = status === "learning" ? 0 : status === "understood" ? 1 : 2;
-    return [{ concept, rank: [...capabilityRank, gapRank, masteryRank, concept.sortOrder] }];
+    const rank = focusCapabilities.length > 0
+      ? [focusIndex >= 0 ? 0 : 1, focusIndex >= 0 ? focusIndex : capabilityFallback.indexOf(concept.capability), gapRank, masteryRank, concept.sortOrder]
+      : [gapRank, capabilityFallback.indexOf(concept.capability), masteryRank, concept.sortOrder];
+    return [{ concept, rank }];
   });
 
   const selected = ranked.toSorted((left, right) => {
