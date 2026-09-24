@@ -11,7 +11,8 @@
     "test": "vitest run",
     "seed:generate": "node scripts/generate-curriculum-seed.mjs",
     "qa:screenshots": "node scripts/capture-dashboard.mjs",
-    "qa:unauth": "node scripts/verify-unauthenticated.mjs"
+    "qa:unauth": "node scripts/verify-unauthenticated.mjs",
+    "qa:rls": "node scripts/verify-rls.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.7",

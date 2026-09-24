@@ -67,6 +67,10 @@ a {
     "review";
 }
 
+.dashboard-details > * {
+  min-width: 0;
+}
+
 .dashboard-gap { grid-area: gap; }
 .dashboard-focus { grid-area: focus; }
 .dashboard-activity { grid-area: activity; }

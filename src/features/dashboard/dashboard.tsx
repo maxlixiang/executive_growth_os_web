@@ -28,9 +28,9 @@ export async function Dashboard() {
   return (
     <main className="mx-auto w-full max-w-[1220px] px-5 py-6 sm:px-8 lg:px-12 lg:py-10">
       <header className="flex items-start justify-between gap-4">
-        <div>
+        <div className="min-w-0">
           <p className="text-sm font-semibold text-ink lg:hidden">Executive Growth OS</p>
-          <h1 className="mt-9 text-[36px] font-bold leading-none tracking-[-0.045em] sm:text-[42px] lg:mt-0 lg:text-[46px]">
+          <h1 className="mt-9 break-words text-[36px] font-bold leading-none tracking-[-0.045em] [overflow-wrap:anywhere] sm:text-[42px] lg:mt-0 lg:text-[46px]">
             你好，{displayName}
           </h1>
           <p className="mt-3 text-[17px] text-muted">{today}</p>
