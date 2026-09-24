@@ -1011,7 +1011,22 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      commit_study_attempt: {
+        Args: { p_attempt_id: string }
+        Returns: Database["public"]["Tables"]["study_sessions"]["Row"]
+      }
+      rebuild_knowledge_progress: {
+        Args: { p_concept_id: string; p_user_id: string }
+        Returns: Database["public"]["Tables"]["knowledge_progress"]["Row"]
+      }
+      set_study_session_validity: {
+        Args: {
+          p_reason: string | null
+          p_session_id: string
+          p_valid: boolean
+        }
+        Returns: Database["public"]["Tables"]["knowledge_progress"]["Row"]
+      }
     }
     Enums: {
       [_ in never]: never
