@@ -9,7 +9,7 @@ export type JourneyActionState = { ok: boolean; message: string };
 const nicknameSchema = z.string().trim().min(1, "昵称不能为空。").max(40, "昵称不能超过 40 个字符。");
 
 function refreshJourneyViews() {
-  for (const path of ["/", "/settings", "/assessment", "/history"]) revalidatePath(path);
+  for (const path of ["/", "/plan", "/settings", "/assessment", "/history"]) revalidatePath(path);
 }
 
 export async function updateNickname(_previous: JourneyActionState, formData: FormData): Promise<JourneyActionState> {

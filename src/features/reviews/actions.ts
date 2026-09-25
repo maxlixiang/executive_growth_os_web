@@ -48,7 +48,7 @@ export async function runMonthlyReview(_previous: WorkflowState, formData: FormD
       p_recent_training_direction: result.recent_training_direction,
     });
     if (error) throw new Error(error.message);
-    for (const path of ["/", "/reviews", "/progress", "/settings", `/reviews/monthly/${key.data}`]) revalidatePath(path);
+    for (const path of ["/", "/reviews", "/progress", "/plan", `/reviews/monthly/${key.data}`]) revalidatePath(path);
     return { ok: true, message: `${key.data} Monthly Review 已生成。`, href: `/reviews/monthly/${key.data}` };
   } catch (error) {
     return { ok: false, message: safeMessage(error) };
@@ -144,7 +144,7 @@ async function advanceInterview(sessionId: string): Promise<WorkflowState> {
     p_recent_training_direction: result.recent_training_direction,
   });
   if (error) throw new Error(error.message);
-  for (const path of ["/", "/reviews", "/interviews", "/progress", "/settings", `/interviews/${sessionId}`, `/reviews/quarterly/${key}`]) revalidatePath(path);
+  for (const path of ["/", "/reviews", "/interviews", "/progress", "/plan", `/interviews/${sessionId}`, `/reviews/quarterly/${key}`]) revalidatePath(path);
   return { ok: true, message: "Quarterly Assessment 已完成。", href: `/reviews/quarterly/${key}` };
 }
 

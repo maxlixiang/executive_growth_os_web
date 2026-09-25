@@ -104,7 +104,7 @@ export async function activateGrowthPlan(
       p_target_ends_at: target.toISOString().slice(0, 10),
     });
     if (error) throw new Error(error.message);
-    for (const path of ["/", "/settings", "/progress", "/study", "/help"]) revalidatePath(path);
+    for (const path of ["/", "/plan", "/progress", "/study", "/help"]) revalidatePath(path);
     return { ok: true, message: "新的阶段计划已经启用；上一版本及调整原因已保留。" };
   } catch (error) {
     return { ok: false, message: publicError(error) };

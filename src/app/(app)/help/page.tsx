@@ -74,11 +74,18 @@ const helpSections = [
     tips: ["不知道或没有真实案例时可以明确说明。", "不要编造数字；证据不足应保留为“不可评级”。"],
   },
   {
-    id: "settings", title: "设置", english: "Growth Profile", href: "/settings",
+    id: "plan", title: "成长计划", english: "Plan", href: "/plan",
     purpose: "维护长期发展目标，查看诊断置信度，并确认未来 6–8 周的阶段训练计划。",
     input: "填写长期目标；可以采用 AI 建议或自行制定阶段目标。替换已有计划时必须说明调整原因。",
     output: "生成可追溯的计划版本、1–2 项 Current Focus、阶段里程碑、复核日期和置信度快照。",
     tips: ["AI 只使用能力级聚合数据生成计划建议，确认后才会生效。", "置信度随有效学习和实践数据变化，表示数据充分程度而不是能力等级。"],
+  },
+  {
+    id: "settings", title: "设置", english: "Settings", href: "/settings",
+    purpose: "管理昵称、预学习日期和学习旅程的数据边界。",
+    input: "昵称可随时修改；更正日期必须填写原因；重启旅程需要强确认。",
+    output: "更新界面称呼，或建立可审计的旅程日期与重启记录。",
+    tips: ["昵称变化不会改变用户身份。", "重启会归档旧旅程，旧数据不参与当前 AI 判断。"],
   },
 ] as const;
 
@@ -90,7 +97,7 @@ export default function HelpPage() {
       <section className="mt-8 rounded-2xl bg-accent-soft p-6 sm:p-8">
         <div className="flex items-center gap-3 text-accent-strong"><CircleHelp size={22} /><h2 className="text-xl font-bold">第一次使用，从这三步开始</h2></div>
         <ol className="mt-6 grid gap-5 md:grid-cols-3">
-          <QuickStep number="1" title="设置目标" description="在 Growth Profile 填写长期目标并选择 Current Focus。" href="/settings" />
+          <QuickStep number="1" title="设置目标" description="在成长计划中填写长期目标并确认阶段训练重点。" href="/plan" />
           <QuickStep number="2" title="记录真实工作" description="使用 Capture 或 Daily 写下事件、角色、判断和结果。" href="/capture" />
           <QuickStep number="3" title="学习并验证" description="完成 Study、Quiz，再用真实实践和 Review 校准能力。" href="/study" />
         </ol>

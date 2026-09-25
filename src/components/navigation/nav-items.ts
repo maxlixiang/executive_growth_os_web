@@ -12,11 +12,13 @@ import {
   Lightbulb,
   MessageSquareText,
   NotebookPen,
+  Route,
   Settings,
 } from "lucide-react";
 
 export const desktopNavItems = [
   { href: "/", label: "首页", secondary: "Dashboard", icon: Home },
+  { href: "/plan", label: "成长计划", secondary: "Plan", icon: Route },
   { href: "/capture", label: "快速记录", secondary: "Capture", icon: NotebookPen },
   { href: "/daily", label: "每日复盘", secondary: "Daily", icon: CalendarDays },
   { href: "/study", label: "学习", secondary: "Study", icon: BookOpen },
