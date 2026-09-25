@@ -14,7 +14,142 @@ export type Database = {
   }
   graphql_public: {
     Tables: {
-      [_ in never]: never
+      activity_events: {
+        Row: {
+          created_at: string
+          cycle_id: string | null
+          event_type: string
+          id: string
+          journey_id: string | null
+          metadata: Json
+          occurred_at: string
+          source_id: string | null
+          source_type: string | null
+          summary: string | null
+          title: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          cycle_id?: string | null
+          event_type: string
+          id?: string
+          journey_id?: string | null
+          metadata?: Json
+          occurred_at?: string
+          source_id?: string | null
+          source_type?: string | null
+          summary?: string | null
+          title: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          cycle_id?: string | null
+          event_type?: string
+          id?: string
+          journey_id?: string | null
+          metadata?: Json
+          occurred_at?: string
+          source_id?: string | null
+          source_type?: string | null
+          summary?: string | null
+          title?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      assessment_capability_scores: {
+        Row: {
+          assessment_session_id: string
+          capability_id: string
+          capability_score: number
+          case_score: number
+          created_at: string
+          evidence_level: string
+          evidence_refs: Json
+          id: string
+          knowledge_score: number
+          practice_score: number
+          rationale: string
+          user_id: string
+        }
+        Insert: {
+          assessment_session_id: string
+          capability_id: string
+          case_score: number
+          created_at?: string
+          evidence_level?: string
+          evidence_refs?: Json
+          id?: string
+          knowledge_score: number
+          practice_score: number
+          rationale: string
+          user_id: string
+        }
+        Update: {
+          assessment_session_id?: string
+          capability_id?: string
+          case_score?: number
+          created_at?: string
+          evidence_level?: string
+          evidence_refs?: Json
+          id?: string
+          knowledge_score?: number
+          practice_score?: number
+          rationale?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      assessment_sessions: {
+        Row: {
+          assessment_type: string
+          completed_at: string | null
+          confidence_score: number | null
+          created_at: string
+          cycle_id: string | null
+          id: string
+          journey_id: string
+          readiness_score: number | null
+          scoring_version: number
+          started_at: string | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          assessment_type: string
+          completed_at?: string | null
+          confidence_score?: number | null
+          created_at?: string
+          cycle_id?: string | null
+          id?: string
+          journey_id: string
+          readiness_score?: number | null
+          scoring_version?: number
+          started_at?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          assessment_type?: string
+          completed_at?: string | null
+          confidence_score?: number | null
+          created_at?: string
+          cycle_id?: string | null
+          id?: string
+          journey_id?: string
+          readiness_score?: number | null
+          scoring_version?: number
+          started_at?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -39,6 +174,9 @@ export type Database = {
   }
   public: {
     Tables: {
+      activity_events: Database["graphql_public"]["Tables"]["activity_events"]
+      assessment_capability_scores: Database["graphql_public"]["Tables"]["assessment_capability_scores"]
+      assessment_sessions: Database["graphql_public"]["Tables"]["assessment_sessions"]
       ai_runs: {
         Row: {
           completed_at: string | null
@@ -388,6 +526,96 @@ export type Database = {
             referencedColumns: ["id", "user_id"]
           },
         ]
+      }
+      learning_cycles: {
+        Row: {
+          assessment_due_on: string
+          completed_at: string | null
+          created_at: string
+          cycle_number: number
+          ends_on: string
+          id: string
+          journey_id: string
+          starts_on: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          assessment_due_on: string
+          completed_at?: string | null
+          created_at?: string
+          cycle_number: number
+          ends_on: string
+          id?: string
+          journey_id: string
+          starts_on: string
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          assessment_due_on?: string
+          completed_at?: string | null
+          created_at?: string
+          cycle_number?: number
+          ends_on?: string
+          id?: string
+          journey_id?: string
+          starts_on?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      learning_journeys: {
+        Row: {
+          archived_at: string | null
+          baseline_completed_on: string | null
+          created_at: string
+          formal_started_on: string | null
+          id: string
+          mode: string
+          preparation_started_on: string
+          restart_reason: string | null
+          sequence_number: number
+          stage: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          archived_at?: string | null
+          baseline_completed_on?: string | null
+          created_at?: string
+          formal_started_on?: string | null
+          id?: string
+          mode: string
+          preparation_started_on: string
+          restart_reason?: string | null
+          sequence_number: number
+          stage?: string
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          archived_at?: string | null
+          baseline_completed_on?: string | null
+          created_at?: string
+          formal_started_on?: string | null
+          id?: string
+          mode?: string
+          preparation_started_on?: string
+          restart_reason?: string | null
+          sequence_number?: number
+          stage?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       knowledge_categories: {
         Row: {
@@ -1107,6 +1335,14 @@ export type Database = {
         Args: { p_attempt_id: string }
         Returns: Database["public"]["Tables"]["study_sessions"]["Row"]
       }
+      confirm_formal_learning_start: {
+        Args: { p_date: string }
+        Returns: Database["public"]["Tables"]["learning_cycles"]["Row"]
+      }
+      correct_journey_preparation_date: {
+        Args: { p_date: string; p_reason: string }
+        Returns: Database["public"]["Tables"]["learning_journeys"]["Row"]
+      }
       complete_quarterly_review: {
         Args: {
           p_assessment_markdown: string
@@ -1148,6 +1384,16 @@ export type Database = {
       rebuild_knowledge_progress: {
         Args: { p_concept_id: string; p_user_id: string }
         Returns: Database["public"]["Tables"]["knowledge_progress"]["Row"]
+      }
+      restart_learning_journey: {
+        Args: {
+          p_confirmation: string
+          p_copy_long_term_goal: boolean
+          p_mode: string
+          p_preparation_started_on: string
+          p_reason: string
+        }
+        Returns: Database["public"]["Tables"]["learning_journeys"]["Row"]
       }
       set_study_session_validity: {
         Args: {

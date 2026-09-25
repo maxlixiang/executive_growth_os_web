@@ -1,17 +1,35 @@
-# Executive Growth OS Web
+# Executive Growth OS
 
-Executive Growth OS 的独立 Mobile-first Web App。它把课程标准、主动回忆、真实工作、AI 反馈、间隔复习和周期考核连接成长期成长闭环。
+Executive Growth OS 帮助法务等专业岗位工作者，逐步建立高级管理者所需的商业、财务、战略、执行、领导与影响力能力。它把概念学习、案例判断、真实工作证据、复盘和周期评估连接成一套可持续、可审计的成长系统。
 
-本仓库与 Executive Growth OS CLI、Career OS 和大米的小站完全独立，不共享数据库，不同步或迁移私人用户数据。
+## 第一次使用
 
-## 技术栈
+1. 登录后先到“设置”确认昵称和学习旅程。
+2. 新用户先进入“基础预学习”，用大约两周完成六项能力各 4 个基础概念，共 24 项。
+3. 准备好后，在“评估”中发起基线诊断。基线用于建立初始能力画像，不与正式学习周期混在一起。
+4. 基线完成后，由用户确认正式学习开始日期。此后每两个月进入一次知识、案例和实践证据的综合评估。
+5. 日常使用“快速记录”“每日复盘”“学习”和“实践证据”；系统据此调整训练建议，但重要计划与评分必须由用户确认。
 
-- Next.js 16 App Router
-- React 19 + TypeScript strict
-- Tailwind CSS 4
-- Supabase Auth / Postgres / RLS
-- Zod
-- DeepSeek API（仅服务端）
+## 学习旅程、周期和分数
+
+- “旅程”是一段完整的学习生命期，可以是试用旅程或正式旅程。
+- “预学习开始日”只负责计算两周基础准备，不是正式周期起点。
+- “正式学习开始日”在基线诊断后确认，是双月评估的固定锚点。
+- 正常进入下一周期时，有效学习数据和证据会继承。
+- 重启旅程会归档旧旅程，但不会删除历史。新旅程显示“尚未评估”，旧数据不参与当前 AI 判断或评分。
+- 历史页支持“当前旅程”和“全部旅程”两个视角，并明确标示归档数据。
+
+高级管理者胜任度采用 100 分制。每项能力包含知识 30 分、案例分析 30 分和实践证据 40 分，再按六项能力权重汇总。70 分是岗位准备度参考门槛，同时还必须满足单项能力、知识和实践的最低门槛。分数以最近一次正式评估为准，因此可能随遗忘、证据有效期和新测试结果上升或下降。
+
+## 用户身份与隐私
+
+昵称只是界面称呼，可以随时修改。系统以登录账户的内部唯一 ID 识别用户，因此邮箱显示方式或昵称变化都不会产生新用户。每个用户、每段旅程和每个正式周期的数据严格隔离；AI 默认只能读取当前用户的当前旅程。
+
+本仓库与 Executive Growth OS CLI、Career OS 和大米的小站完全独立，不共享数据库，也不会自动迁移私人数据。
+
+## 本地开发
+
+技术栈为 Next.js 16、React 19、TypeScript、Tailwind CSS 4、Supabase 和仅服务端调用的 DeepSeek API。
 
 ## 本地运行
 
@@ -21,7 +39,7 @@ npm install
 npm run dev
 ```
 
-在独立 Supabase Project 建立后填写：
+Supabase 环境变量：
 
 ```dotenv
 NEXT_PUBLIC_SUPABASE_URL=
@@ -39,18 +57,11 @@ DEEPSEEK_BASE_URL=https://api.deepseek.com
 
 不得创建 `NEXT_PUBLIC_DEEPSEEK_API_KEY`。
 
-未配置 Supabase 时，Dashboard 只在 `next dev` 中作为 W1 视觉预览开放；production 默认关闭并跳转到 `/login`。
-
-## 验证
+不得创建 `NEXT_PUBLIC_DEEPSEEK_API_KEY`。数据库迁移位于 `supabase/migrations/`；私人表均受 Supabase RLS 保护。
 
 ```powershell
 npm run typecheck
 npm run lint
+npm test
 npm run build
 ```
-
-数据库 migration 位于 `supabase/migrations/`。共享课程表仅允许 authenticated 用户读取；所有私人表直接包含 `user_id` 并启用 RLS。
-
-## 当前阶段
-
-W1：项目初始化、Supabase Auth/RLS 基础、Mobile App Shell、Dashboard Skeleton。

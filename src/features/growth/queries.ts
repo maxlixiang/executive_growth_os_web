@@ -6,17 +6,20 @@ const evidenceRanks: Record<string, number> = { E0: 0, E1: 1, E2: 2, E3: 3, E4: 
 
 export async function getGrowthPlanWorkspace() {
   const { supabase, user } = await requireUser();
+  const { data: journey, error: journeyError } = await supabase.from("learning_journeys").select("id").eq("user_id", user.id).eq("status", "active").maybeSingle();
+  if (journeyError || !journey) throw new Error(journeyError?.message ?? "Active learning journey required");
+  const journeyId = journey.id;
   const [state, plans, focuses, capabilities, sessions, reflections, evidence, gaps, monthly, quarterly] = await Promise.all([
     supabase.from("user_growth_state").select("overall_goal, summary, recent_training_direction").eq("user_id", user.id).maybeSingle(),
-    supabase.from("growth_plans").select("*").eq("user_id", user.id).order("version", { ascending: false }).limit(20),
+    supabase.from("growth_plans").select("*").eq("user_id", user.id).filter("journey_id", "eq", journeyId).order("version", { ascending: false }).limit(20),
     supabase.from("user_focuses").select("priority, starts_at, capabilities(code, title_en, title_zh)").eq("user_id", user.id).eq("is_active", true).order("priority"),
     supabase.from("capabilities").select("id, code, title_en, title_zh, sort_order").eq("is_active", true).order("sort_order"),
-    supabase.from("study_sessions").select("knowledge_concepts(capability_id)").eq("user_id", user.id).eq("is_valid", true),
-    supabase.from("daily_reflections").select("id").eq("user_id", user.id).not("analysis", "is", null),
-    supabase.from("practice_evidence").select("capability_id, evidence_level").eq("user_id", user.id),
-    supabase.from("growth_gaps").select("capability_id, gap_type").eq("user_id", user.id).eq("status", "open"),
-    supabase.from("monthly_reviews").select("id").eq("user_id", user.id),
-    supabase.from("quarterly_reviews").select("id").eq("user_id", user.id).eq("status", "completed"),
+    supabase.from("study_sessions").select("knowledge_concepts(capability_id)").eq("user_id", user.id).filter("journey_id", "eq", journeyId).eq("is_valid", true),
+    supabase.from("daily_reflections").select("id").eq("user_id", user.id).filter("journey_id", "eq", journeyId).not("analysis", "is", null),
+    supabase.from("practice_evidence").select("capability_id, evidence_level").eq("user_id", user.id).filter("journey_id", "eq", journeyId),
+    supabase.from("growth_gaps").select("capability_id, gap_type").eq("user_id", user.id).filter("journey_id", "eq", journeyId).eq("status", "open"),
+    supabase.from("monthly_reviews").select("id").eq("user_id", user.id).filter("journey_id", "eq", journeyId),
+    supabase.from("quarterly_reviews").select("id").eq("user_id", user.id).filter("journey_id", "eq", journeyId).eq("status", "completed"),
   ]);
   const failed = [state, plans, focuses, capabilities, sessions, reflections, evidence, gaps, monthly, quarterly].find((result) => result.error);
   if (failed?.error) throw new Error(failed.error.message);

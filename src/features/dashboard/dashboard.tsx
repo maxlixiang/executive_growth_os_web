@@ -4,18 +4,21 @@ import { GrowthPlanSummary } from "@/features/growth/growth-plan-summary";
 import { getGrowthPlanWorkspace } from "@/features/growth/queries";
 import { getQuizQueue, getRecommendation, getStudyHistory } from "@/features/knowledge/queries";
 import { requireUser } from "@/lib/auth/require-user";
+import { JourneySummary } from "@/features/journeys/journey-summary";
+import { getJourneyWorkspace } from "@/features/journeys/queries";
 
 function formatDate(value: string | Date, timezone: string, options: Intl.DateTimeFormatOptions) {
   return new Intl.DateTimeFormat("zh-CN", { timeZone: timezone, ...options }).format(new Date(value));
 }
 
 export async function Dashboard() {
-  const [{ workspace, recommendation }, { due }, history, { supabase, user }, growthPlan] = await Promise.all([
+  const [{ workspace, recommendation }, { due }, history, { supabase, user }, growthPlan, journeyWorkspace] = await Promise.all([
     getRecommendation(),
     getQuizQueue(),
     getStudyHistory(),
     requireUser(),
     getGrowthPlanWorkspace(),
+    getJourneyWorkspace(),
   ]);
   const [{ data: profile }, { data: review }] = await Promise.all([
     supabase.from("profiles").select("display_name, timezone").eq("id", user.id).maybeSingle(),
@@ -42,7 +45,8 @@ export async function Dashboard() {
         <span className="grid size-11 shrink-0 place-items-center rounded-full bg-soft text-base font-semibold lg:hidden">{displayName.slice(0, 1).toLocaleUpperCase()}</span>
       </header>
 
-      <div className="mt-8"><GrowthPlanSummary plan={growthPlan.currentPlan} confidence={growthPlan.confidence} capabilityLabels={capabilityLabels} compact /></div>
+      <div className="mt-8"><JourneySummary workspace={journeyWorkspace} compact /></div>
+      <div className="mt-5"><GrowthPlanSummary plan={growthPlan.currentPlan} confidence={growthPlan.confidence} capabilityLabels={capabilityLabels} compact /></div>
 
       <section className="mt-5 grid gap-4 lg:grid-cols-[minmax(0,1fr)_360px]">
         <div className="rounded-2xl bg-accent-soft p-6 sm:p-8 lg:min-h-72">

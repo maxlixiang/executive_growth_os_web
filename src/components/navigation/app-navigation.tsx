@@ -8,7 +8,7 @@ function isCurrent(pathname: string, href: string) {
   return href === "/" ? pathname === href : pathname.startsWith(href);
 }
 
-export function DesktopNavigation() {
+export function DesktopNavigation({ displayName }: { displayName: string }) {
   const pathname = usePathname();
 
   return (
@@ -46,8 +46,8 @@ export function DesktopNavigation() {
           <span className="text-muted">{settingsItem.secondary}</span>
         </Link>
         <div className="mt-3 flex items-center gap-3 px-3 py-2 text-sm font-semibold">
-          <span className="grid size-9 place-items-center rounded-full bg-accent text-white">S</span>
-          <span>Sumin</span>
+          <span className="grid size-9 place-items-center rounded-full bg-accent text-white">{displayName.slice(0, 1).toLocaleUpperCase()}</span>
+          <span className="truncate">{displayName}</span>
         </div>
       </div>
     </aside>

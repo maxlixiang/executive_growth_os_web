@@ -2,15 +2,22 @@ import { PageContainer, PageHeader } from "@/components/page-header";
 import { GrowthPlanManager } from "@/features/growth/growth-profile-form";
 import { GrowthPlanSummary } from "@/features/growth/growth-plan-summary";
 import { getGrowthPlanWorkspace } from "@/features/growth/queries";
+import { JourneyControls, NicknameForm } from "@/features/journeys/journey-forms";
+import { JourneySummary } from "@/features/journeys/journey-summary";
+import { getJourneyWorkspace } from "@/features/journeys/queries";
 
 export const dynamic = "force-dynamic";
 
 export default async function SettingsPage() {
-  const workspace = await getGrowthPlanWorkspace();
+  const [workspace, journeyWorkspace] = await Promise.all([getGrowthPlanWorkspace(), getJourneyWorkspace()]);
   const activeCodes = workspace.currentPlan?.focus_codes ?? workspace.focuses.flatMap((focus) => focus.capabilities?.code ? [focus.capabilities.code] : []);
   const capabilityLabels = Object.fromEntries(workspace.capabilities.map((item) => [item.code, `${item.title_en} · ${item.title_zh}`]));
   return <PageContainer>
     <PageHeader backHref="/" eyebrow="Long-term Growth" title="成长计划" description="长期目标保持方向稳定；AI 根据学习与实践数据建议 6–8 周阶段计划，由你确认后生效。" />
+
+    <div className="mt-8"><NicknameForm nickname={journeyWorkspace.profile?.display_name ?? journeyWorkspace.user.email.split("@")[0] ?? ""} email={journeyWorkspace.user.email} /></div>
+    <div className="mt-6"><JourneySummary workspace={journeyWorkspace} /></div>
+    {journeyWorkspace.journey ? <div className="mt-6"><JourneyControls mode={journeyWorkspace.journey.mode} startDate={journeyWorkspace.journey.preparation_started_on} baselineCompleted={Boolean(journeyWorkspace.journey.baseline_completed_on)} /></div> : null}
 
     <section className="mt-8 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
       <Layer number="1" title="长期发展目标" description="你希望承担什么更高层级的责任，原则上保持稳定。" />

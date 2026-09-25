@@ -1,0 +1,12 @@
+import Link from "next/link";
+import { ArrowRight, CalendarClock } from "lucide-react";
+import type { getJourneyWorkspace } from "./queries";
+
+type Workspace = Awaited<ReturnType<typeof getJourneyWorkspace>>;
+
+export function JourneySummary({ workspace, compact = false }: { workspace: Workspace; compact?: boolean }) {
+  const { journey, cycle, latestAssessment, foundationCompleted, foundationTotal } = workspace;
+  if (!journey) return <section className="rounded-2xl bg-accent-soft p-5 sm:p-7"><p className="font-bold text-accent">学习旅程尚未建立</p><p className="mt-2 text-sm text-muted">请到设置中确认预学习开始日期。</p></section>;
+  const preparation = journey.stage !== "active";
+  return <section className="rounded-2xl border border-line bg-white p-5 sm:p-7"><div className="flex flex-wrap items-start justify-between gap-4"><div><p className="text-sm font-bold text-accent">{journey.mode === "trial" ? "TRIAL JOURNEY · 试用旅程" : `LEARNING JOURNEY ${journey.sequence_number}`}</p><h2 className="mt-2 text-2xl font-bold">{preparation ? "基础预学习" : `正式学习 · 第 ${cycle?.cycle_number ?? 1} 周期`}</h2><p className="mt-2 text-sm leading-6 text-muted">{preparation ? `从 ${journey.preparation_started_on} 开始；完成 24 项基础概念后进行基线诊断。` : `正式起始日 ${journey.formal_started_on}；下一次双月评估 ${cycle?.assessment_due_on ?? "待安排"}。`}</p></div><div className="rounded-xl bg-soft px-4 py-3 text-right"><p className="text-xs font-semibold text-muted">高级管理者胜任度</p><p className="mt-1 text-xl font-bold">{latestAssessment?.readiness_score == null ? "尚未评估" : `${latestAssessment.readiness_score} / 100`}</p></div></div>{preparation ? <div className="mt-5"><div className="flex justify-between text-sm font-semibold"><span>基础课程进度</span><span>{foundationCompleted} / {foundationTotal || 24}</span></div><div className="mt-2 h-2 overflow-hidden rounded-full bg-soft"><div className="h-full rounded-full bg-accent" style={{ width: `${foundationTotal ? foundationCompleted / foundationTotal * 100 : 0}%` }} /></div></div> : null}{compact ? <Link href="/assessment" className="mt-5 inline-flex items-center gap-2 text-sm font-bold text-accent">查看评估规则与准备进度 <ArrowRight size={17} /></Link> : <div className="mt-5 flex flex-wrap gap-3"><Link href="/assessment" className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-accent px-5 text-sm font-bold text-white"><CalendarClock size={17} />评估中心</Link><Link href="/history" className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-line px-5 text-sm font-bold">查看旅程历史</Link></div>}</section>;
+}
