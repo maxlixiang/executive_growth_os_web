@@ -1,4 +1,25 @@
 capability: Influence
+title_zh:
+  structured_communication: 结构化沟通
+  executive_summary: 高管摘要
+  recommendation: 建议方案
+  framing: 问题框定
+  stakeholder_mapping: 利益相关者分析
+  influence_without_authority: 非职权影响力
+  active_listening: 积极倾听
+  persuasion: 说服
+  negotiation: 谈判
+  BATNA: 最佳替代方案
+  ZOPA: 可能达成协议的区间
+  anchoring: 锚定效应
+  objection_handling: 异议处理
+  coalition_building: 联盟构建
+  conflict_resolution: 冲突解决
+  executive_presence: 高管风范
+  storytelling_with_data: 数据叙事
+  decision_memo: 决策备忘录
+  managing_up: 向上管理
+  cross_function_alignment: 跨职能协同
 categories:
   结构化沟通: [structured_communication, framing, storytelling_with_data]
   管理层沟通: [executive_summary, recommendation, executive_presence, decision_memo]
@@ -7,7 +28,6 @@ categories:
   谈判: [negotiation, BATNA, ZOPA, anchoring]
   冲突与向上管理: [conflict_resolution, managing_up]
 defaults: &d
-  title_zh: 影响力概念
   description: 在没有行政权力时改变关键人的认知与行动。
   why_it_matters: 高管影响力要求把专业判断转化为共同决策。
   core_principles: [受众, 框架, 行动]

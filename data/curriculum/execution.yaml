@@ -1,4 +1,25 @@
 capability: Execution
+title_zh:
+  outcome_vs_output: 成果与产出
+  priority: 优先级
+  scope: 范围
+  project_charter: 项目章程
+  milestone: 里程碑
+  dependency: 依赖关系
+  critical_path: 关键路径
+  stakeholder_map: 利益相关者地图
+  RACI: RACI 责任矩阵
+  risk_vs_issue: 风险与问题
+  risk_register: 风险登记册
+  decision_log: 决策日志
+  change_management: 变更管理
+  escalation: 升级处理
+  resource_conflict: 资源冲突
+  project_governance: 项目治理
+  KPI: 关键绩效指标
+  OKR: 目标与关键成果
+  retrospective: 复盘
+  root_cause_analysis: 根因分析
 categories:
   个人执行: [outcome_vs_output, priority, scope, KPI, OKR]
   项目规划: [project_charter, milestone, dependency, critical_path, RACI]
@@ -7,7 +28,6 @@ categories:
   跨部门协作: [resource_conflict]
   复盘改善: [retrospective, root_cause_analysis]
 defaults: &d
-  title_zh: 执行管理概念
   description: 将复杂事情转化为可管理且可交付的结果。
   why_it_matters: 结果来自清晰的责任、节奏和风险控制。
   core_principles: [结果, 依赖, 风险]

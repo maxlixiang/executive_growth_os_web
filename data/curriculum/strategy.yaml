@@ -1,4 +1,26 @@
 capability: Strategy
+title_zh:
+  strategy_vs_plan: 战略与计划
+  competitive_positioning: 竞争定位
+  trade_off: 取舍
+  opportunity_cost: 机会成本
+  competitive_advantage: 竞争优势
+  moat: 护城河
+  five_forces: 五力模型
+  market_entry: 市场进入
+  market_structure: 市场结构
+  scenario_planning: 情景规划
+  decision_tree: 决策树
+  decision_memo: 决策备忘录
+  premortem: 事前失败分析
+  reversible_decision: 可逆决策
+  irreversible_decision: 不可逆决策
+  resource_allocation: 资源配置
+  portfolio_management: 组合管理
+  strategic_priority: 战略优先级
+  strategic_risk: 战略风险
+  exit_criteria: 退出标准
+  second_order_effects: 二阶效应
 categories:
   战略基础: [strategy_vs_plan, trade_off, opportunity_cost, strategic_priority]
   竞争分析: [competitive_positioning, competitive_advantage, moat, five_forces, market_structure, market_entry]
@@ -6,7 +28,6 @@ categories:
   情景与风险: [scenario_planning, premortem, strategic_risk, exit_criteria]
   资源配置: [resource_allocation, portfolio_management]
 defaults: &d
-  title_zh: 战略管理概念
   description: 在信息不完整、资源有限时进行真实选择。
   why_it_matters: 战略需要取舍而不是愿望清单。
   core_principles: [选择, 取舍, 资源配置]

@@ -5,6 +5,7 @@ import YAML from "yaml";
 const root = resolve(import.meta.dirname, "..");
 const sourceDirectory = resolve(root, "data", "curriculum");
 const outputPath = resolve(root, "supabase", "migrations", "202609240002_seed_curriculum.sql");
+const titleMigrationPath = resolve(root, "supabase", "migrations", "202609250007_curriculum_concept_titles.sql");
 const capabilityTitles = {
   Business: "商业理解",
   Finance: "财务与经营数字",
@@ -36,6 +37,8 @@ for (const [capabilityIndex, file] of files.entries()) {
   for (const [index, concept] of (document.concepts ?? []).entries()) {
     const required = ["id", "title", "description", "why_it_matters", "core_principles", "key_questions", "application_questions", "common_mistakes", "prerequisites", "tags"];
     if (required.some((field) => concept[field] === undefined)) throw new Error(`Incomplete concept ${concept.id ?? "unknown"} in ${file}`);
+    const titleZh = document.title_zh?.[concept.id] ?? concept.title_zh;
+    if (!titleZh) throw new Error(`Missing Chinese title for concept ${concept.id} in ${file}`);
     const categoryCode = categoryForConcept.get(concept.id);
     if (!categoryCode) throw new Error(`Uncategorized concept ${concept.id} in ${file}`);
     concepts.push({
@@ -43,7 +46,7 @@ for (const [capabilityIndex, file] of files.entries()) {
       categoryCode,
       code: concept.id,
       titleEn: concept.title,
-      titleZh: document.title_zh?.[concept.id] ?? concept.title_zh ?? concept.title,
+      titleZh,
       description: concept.description,
       whyItMatters: concept.why_it_matters,
       corePrinciples: concept.core_principles,
@@ -72,5 +75,21 @@ const statements = [
   "",
 ];
 
-await writeFile(outputPath, statements.join("\n"), "utf8");
-console.log(`Generated ${outputPath} with ${capabilities.length} capabilities, ${categories.length} categories, and ${concepts.length} concepts.`);
+const titleMigration = [
+  "begin;",
+  "update public.knowledge_concepts as concept",
+  "set title_zh = translation.title_zh, updated_at = now()",
+  "from public.capabilities as capability",
+  "join (values",
+  concepts.map((item) => `  (${sql(item.capability.toLowerCase())}, ${sql(item.code)}, ${sql(item.titleZh)})`).join(",\n"),
+  ") as translation(capability_code, concept_code, title_zh) on translation.capability_code = capability.code",
+  "where concept.capability_id = capability.id and concept.concept_code = translation.concept_code;",
+  "commit;",
+  "",
+];
+
+await Promise.all([
+  writeFile(outputPath, statements.join("\n"), "utf8"),
+  writeFile(titleMigrationPath, titleMigration.join("\n"), "utf8"),
+]);
+console.log(`Generated curriculum seed and title migration with ${capabilities.length} capabilities, ${categories.length} categories, and ${concepts.length} concepts.`);

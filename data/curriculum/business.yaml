@@ -1,4 +1,30 @@
 capability: Business
+title_zh:
+  business_model: 商业模式
+  value_chain: 价值链
+  customer_segmentation: 客户细分
+  customer_value_proposition: 客户价值主张
+  channels: 渠道
+  distributor_model: 经销商模式
+  pricing: 定价
+  unit_economics: 单位经济模型
+  gross_margin: 毛利率
+  contribution_margin: 贡献毛利
+  cost_structure: 成本结构
+  bargaining_power: 议价能力
+  competitive_advantage: 竞争优势
+  switching_cost: 转换成本
+  economies_of_scale: 规模经济
+  supply_chain: 供应链
+  inventory: 库存
+  demand_forecasting: 需求预测
+  channel_conflict: 渠道冲突
+  market_sizing: 市场规模测算
+  TAM_SAM_SOM: 总潜在市场 / 可服务市场 / 可获得市场
+  customer_acquisition: 客户获取
+  retention: 客户留存
+  lifetime_value: 客户终身价值
+  business_case: 商业论证
 categories:
   商业模式: [business_model, value_chain, customer_value_proposition]
   客户与渠道: [customer_segmentation, channels, distributor_model, channel_conflict]
@@ -7,7 +33,6 @@ categories:
   供应链: [supply_chain, inventory, demand_forecasting]
   市场与增长: [market_sizing, TAM_SAM_SOM, customer_acquisition, retention, lifetime_value, business_case]
 defaults: &default
-  title_zh: 商业管理概念
   description: 理解该商业概念并能用于真实业务判断。
   why_it_matters: 帮助将专业判断连接到价值创造与经营结果。
   core_principles: [定义, 驱动因素, 取舍]

@@ -1,4 +1,23 @@
 capability: Leadership
+title_zh:
+  delegation: 授权委派
+  accountability: 责任担当
+  feedback: 反馈
+  coaching: 教练式辅导
+  one_on_one: 一对一沟通
+  performance_management: 绩效管理
+  motivation: 激励
+  conflict_management: 冲突管理
+  psychological_safety: 心理安全
+  talent_development: 人才发展
+  succession: 继任规划
+  team_design: 团队设计
+  role_clarity: 角色清晰度
+  span_of_control: 管理幅度
+  situational_leadership: 情境领导
+  difficult_conversation: 困难对话
+  management_cadence: 管理节奏
+  decision_rights: 决策权
 categories:
   授权与反馈: [delegation, accountability, feedback, coaching, one_on_one]
   绩效与团队: [performance_management, motivation, role_clarity, span_of_control, management_cadence]
@@ -6,7 +25,6 @@ categories:
   人才发展: [talent_development, succession]
   组织设计: [team_design, decision_rights]
 defaults: &d
-  title_zh: 领导力概念
   description: 通过他人持续创造结果并使其成长。
   why_it_matters: 管理者的杠杆来自团队能力而非个人产出。
   core_principles: [责任, 反馈, 成长]
