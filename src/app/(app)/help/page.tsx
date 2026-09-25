@@ -12,10 +12,10 @@ const helpSections = [
   },
   {
     id: "records", title: "工作记录", english: "Records", href: "/capture",
-    purpose: "随时保存会议、工作事件、想法、问题和待跟进事项；AI 整理页自动汇总分析结果。",
+    purpose: "随时保存会议、工作事件、想法、问题和待跟进事项；在同一处查看 AI 分析并核对候选实践证据。",
     input: "尽量写清背景、你的角色、行动、判断或取舍、相关人员、结果或数字，以及仍不确定的地方。",
-    output: "“仅保存”保留原文；“保存并 AI 分析”还会生成 AI 摘要、能力标签、Gap 和实践证据。",
-    tips: ["不需要下班后重新写一遍当天工作。", "会议记录可以直接粘贴，但应指出你本人做了什么。", "没有确认每日摘要不会扣分。"],
+    output: "“仅保存，暂不分析”只保留原文；“保存并 AI 分析”会生成摘要、能力标签、Gap 和候选实践证据。只有经你确认的证据才参与正式评估。",
+    tips: ["AI 只分析你明确选择的记录；不会因分析新记录而读取此前仅保存的内容。", "未分析记录可以逐条处理，也可以明确选择批量分析。", "不需要下班后重新写一遍当天工作。", "会议记录可以直接粘贴，但应指出你本人做了什么。"],
   },
   {
     id: "learning", title: "学习中心", english: "Learning", href: "/study",
@@ -44,13 +44,6 @@ const helpSections = [
     input: "无需填写。系统在重要操作完成后自动记录。",
     output: "当前旅程或全部旅程的可审计时间线；归档旅程会明确标注不参与当前评分。",
     tips: ["昵称修改等低重要性事件归入“其他”。", "历史用于回看发生了什么，不等同于知识复习。"],
-  },
-  {
-    id: "evidence", title: "实践证据", english: "Evidence", href: "/evidence",
-    purpose: "汇总 AI 从真实工作记录中提取的角色、行动、判断、结果与限制。",
-    input: "本页不直接填写。来源是工作记录中选择“保存并 AI 分析”的真实事件。",
-    output: "Context、User Role、Action、Decision、Outcome、Limitations、Next Evidence 和 E0–E5 等级。",
-    tips: ["AI 生成内容需要由你结合真实工作核对。", "缺少可验证结果时，不应把 E1–E3 当成已取得业务成果。"],
   },
   {
     id: "reviews", title: "复盘", english: "Reviews", href: "/reviews",

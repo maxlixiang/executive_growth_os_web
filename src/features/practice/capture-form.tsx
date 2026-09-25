@@ -15,10 +15,10 @@ export function CaptureForm() {
       <label className="block"><span className="text-sm font-semibold">原始记录</span><textarea name="content" required rows={9} maxLength={20000} placeholder="发生了什么？你做了什么判断？结果如何？" className="mt-2 w-full resize-y rounded-xl border border-line px-4 py-3 leading-7" /></label>
       {state.message ? <p role="status" className={`rounded-xl px-4 py-3 text-sm ${state.ok ? "bg-emerald-50 text-emerald-800" : "bg-red-50 text-red-700"}`}>{state.message}</p> : null}
       <div className="grid gap-3 sm:grid-cols-2">
-        <button name="mode" value="save" disabled={pending} className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl border border-accent font-bold text-accent disabled:opacity-60"><Save size={18} />仅保存</button>
         <button name="mode" value="analyze" disabled={pending} className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-accent font-bold text-white disabled:opacity-60">{pending ? <LoaderCircle className="animate-spin" size={18} /> : <Sparkles size={18} />}保存并 AI 分析</button>
+        <button name="mode" value="save" disabled={pending} className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl border border-line font-bold text-muted hover:border-accent hover:text-accent disabled:opacity-60"><Save size={18} />仅保存，暂不分析</button>
       </div>
-      <p className="text-xs leading-5 text-muted">系统总是先保存原始记录；即使 AI 失败，输入也不会丢失。</p>
+      <p className="text-xs leading-5 text-muted">默认建议立即分析当前记录。系统总是先保存原文；AI 失败也不会丢失输入。“仅保存”不会分析此前或当前记录，之后可逐条或批量处理。</p>
     </form>
   );
 }

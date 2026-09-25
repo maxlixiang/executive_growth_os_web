@@ -34,5 +34,5 @@ export const learningTabs = [
 
 export const recordTabs = [
   { href: "/capture", label: "随手记录" },
-  { href: "/capture?view=summary", label: "AI 今日摘要" },
+  { href: "/capture?view=analysis", label: "AI 分析与实践证据" },
 ] as const;

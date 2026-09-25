@@ -17,7 +17,7 @@ export default async function ProgressPage() {
     getQuizQueue(),
     getGrowthPlanWorkspace(),
     supabase.from("user_focuses").select("priority, capabilities(code, title_en, title_zh)").eq("user_id", user.id).eq("is_active", true).order("priority"),
-    supabase.from("practice_evidence").select("capability_id, evidence_level").eq("user_id", user.id),
+    supabase.from("practice_evidence").select("capability_id, evidence_level").eq("user_id", user.id).eq("review_status", "confirmed"),
     supabase.from("growth_gaps").select("capability_id").eq("user_id", user.id).eq("status", "open"),
   ]);
   const failed = [focusesResult, evidenceResult, gapsResult].find((result) => result.error);

@@ -21,4 +21,5 @@ This section is for AI coding agents. User instructions belong in `README.md`; i
 - Normal cycle rollover inherits valid data within the same journey. Journey restart does not.
 - Important mutations require authenticated server-side checks, validated input, and an `activity_events` audit record. Restart requires an explicit reason and the exact strong-confirmation phrase.
 - AI scores must include a scoring version, rationale, evidence references, and confidence. The deterministic readiness rubric is knowledge 30 + case 30 + practice 40 per capability, with weighted aggregation and independent readiness gates.
+- AI-extracted practice evidence starts as `candidate`. Only user-confirmed evidence may enter progress signals, AI growth context, reviews, or formal assessment; rejected or incomplete evidence remains preserved for audit history.
 - `knowledge_progress`, `user_focuses`, and `user_growth_state` are current-journey derived snapshots. They may be rebuilt or reset on restart; source records and audit history remain journey-scoped and preserved.

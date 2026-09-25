@@ -888,6 +888,8 @@ export type Database = {
           limitations: string | null
           next_evidence_needed: string | null
           outcome: string | null
+          review_status: string
+          reviewed_at: string | null
           source_daily_id: string | null
           stakeholders: string | null
           updated_at: string
@@ -907,6 +909,8 @@ export type Database = {
           limitations?: string | null
           next_evidence_needed?: string | null
           outcome?: string | null
+          review_status?: string
+          reviewed_at?: string | null
           source_daily_id?: string | null
           stakeholders?: string | null
           updated_at?: string
@@ -926,6 +930,8 @@ export type Database = {
           limitations?: string | null
           next_evidence_needed?: string | null
           outcome?: string | null
+          review_status?: string
+          reviewed_at?: string | null
           source_daily_id?: string | null
           stakeholders?: string | null
           updated_at?: string

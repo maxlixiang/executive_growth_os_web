@@ -16,7 +16,7 @@ export async function getGrowthPlanWorkspace() {
     supabase.from("capabilities").select("id, code, title_en, title_zh, sort_order").eq("is_active", true).order("sort_order"),
     supabase.from("study_sessions").select("knowledge_concepts(capability_id)").eq("user_id", user.id).filter("journey_id", "eq", journeyId).eq("is_valid", true),
     supabase.from("daily_reflections").select("id").eq("user_id", user.id).filter("journey_id", "eq", journeyId).not("analysis", "is", null),
-    supabase.from("practice_evidence").select("capability_id, evidence_level").eq("user_id", user.id).filter("journey_id", "eq", journeyId),
+    supabase.from("practice_evidence").select("capability_id, evidence_level").eq("user_id", user.id).filter("journey_id", "eq", journeyId).eq("review_status", "confirmed"),
     supabase.from("growth_gaps").select("capability_id, gap_type").eq("user_id", user.id).filter("journey_id", "eq", journeyId).eq("status", "open"),
     supabase.from("monthly_reviews").select("id").eq("user_id", user.id).filter("journey_id", "eq", journeyId),
     supabase.from("quarterly_reviews").select("id").eq("user_id", user.id).filter("journey_id", "eq", journeyId).eq("status", "completed"),
