@@ -15,7 +15,7 @@ export default async function SettingsPage() {
   return <PageContainer>
     <PageHeader backHref="/" eyebrow="Long-term Growth" title="成长计划" description="长期目标保持方向稳定；AI 根据学习与实践数据建议 6–8 周阶段计划，由你确认后生效。" />
 
-    <div className="mt-8"><NicknameForm nickname={journeyWorkspace.profile?.display_name ?? journeyWorkspace.user.email.split("@")[0] ?? ""} email={journeyWorkspace.user.email} /></div>
+    <div className="mt-8"><NicknameForm nickname={journeyWorkspace.profile?.display_name || journeyWorkspace.user.email.split("@")[0] || ""} email={journeyWorkspace.user.email} /></div>
     <div className="mt-6"><JourneySummary workspace={journeyWorkspace} /></div>
     {journeyWorkspace.journey ? <div className="mt-6"><JourneyControls mode={journeyWorkspace.journey.mode} startDate={journeyWorkspace.journey.preparation_started_on} baselineCompleted={Boolean(journeyWorkspace.journey.baseline_completed_on)} /></div> : null}
 
