@@ -75,10 +75,10 @@ const helpSections = [
   },
   {
     id: "settings", title: "设置", english: "Growth Profile", href: "/settings",
-    purpose: "维护长期发展目标和当前 Focus，为 Teacher、Daily、Review 与 Interview 提供长期上下文。",
-    input: "填写总体发展目标，并选择当前最需要投入的一个或多个能力。",
-    output: "保存后的目标和 Focus 会参与后续 AI 分析与学习推荐。",
-    tips: ["目标应描述希望承担的责任或产生的结果。", "Focus 可以随阶段调整，但不必频繁变动。"],
+    purpose: "维护长期发展目标，查看诊断置信度，并确认未来 6–8 周的阶段训练计划。",
+    input: "填写长期目标；可以采用 AI 建议或自行制定阶段目标。替换已有计划时必须说明调整原因。",
+    output: "生成可追溯的计划版本、1–2 项 Current Focus、阶段里程碑、复核日期和置信度快照。",
+    tips: ["AI 只使用能力级聚合数据生成计划建议，确认后才会生效。", "置信度随有效学习和实践数据变化，表示数据充分程度而不是能力等级。"],
   },
 ] as const;
 

@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { PageContainer, PageHeader } from "@/components/page-header";
+import { GrowthPlanSummary } from "@/features/growth/growth-plan-summary";
+import { getGrowthPlanWorkspace } from "@/features/growth/queries";
 import { getKnowledgeWorkspace, getQuizQueue } from "@/features/knowledge/queries";
 import { StatusBadge } from "@/features/knowledge/status";
 import { requireUser } from "@/lib/auth/require-user";
@@ -9,20 +11,21 @@ export const dynamic = "force-dynamic";
 
 export default async function ProgressPage() {
   const { supabase, user } = await requireUser();
-  const [workspace, queue, stateResult, focusesResult, evidenceResult, gapsResult] = await Promise.all([
+  const [workspace, queue, growthPlan, focusesResult, evidenceResult, gapsResult] = await Promise.all([
     getKnowledgeWorkspace(),
     getQuizQueue(),
-    supabase.from("user_growth_state").select("overall_goal").eq("user_id", user.id).maybeSingle(),
+    getGrowthPlanWorkspace(),
     supabase.from("user_focuses").select("priority, capabilities(code, title_en, title_zh)").eq("user_id", user.id).eq("is_active", true).order("priority"),
     supabase.from("practice_evidence").select("capability_id, evidence_level").eq("user_id", user.id),
     supabase.from("growth_gaps").select("capability_id").eq("user_id", user.id).eq("status", "open"),
   ]);
-  const failed = [stateResult, focusesResult, evidenceResult, gapsResult].find((result) => result.error);
+  const failed = [focusesResult, evidenceResult, gapsResult].find((result) => result.error);
   if (failed?.error) throw new Error(failed.error.message);
   const statuses = Object.values(workspace.progress).filter(Boolean);
   const mastered = statuses.filter((item) => item && ["applied", "verified"].includes(item.status)).length;
   const reviews = statuses.reduce((total, item) => total + (item?.reviewCount ?? 0), 0);
-  const focusCodes = new Set((focusesResult.data ?? []).flatMap((item) => item.capabilities?.code ? [item.capabilities.code] : []));
+  const focusCodes = new Set(growthPlan.currentPlan?.focus_codes ?? (focusesResult.data ?? []).flatMap((item) => item.capabilities?.code ? [item.capabilities.code] : []));
+  const capabilityLabels = Object.fromEntries(growthPlan.capabilities.map((item) => [item.code, `${item.title_en} · ${item.title_zh}`]));
   const evidenceRank = { E0: 0, E1: 1, E2: 2, E3: 3 } as const;
   const capabilityStats = workspace.capabilities.map((capability) => {
     const concepts = workspace.concepts.filter((concept) => concept.capabilityId === capability.id);
@@ -48,21 +51,7 @@ export default async function ProgressPage() {
   return (
     <PageContainer>
       <PageHeader eyebrow="Knowledge Progress" title="学习进度" description="进度来自有效 Study Session。作废错误记录后，这里会按剩余有效历史重新计算。" />
-      <section className="mt-8 rounded-2xl border border-line p-6">
-        <div className="flex flex-wrap items-start justify-between gap-4">
-          <div className="max-w-3xl">
-            <p className="text-sm font-bold text-accent">Growth State</p>
-            <h2 className="mt-1 text-xl font-bold">当前成长目标</h2>
-            <p className="mt-3 leading-7 text-muted">{stateResult.data?.overall_goal || "尚未设置总体目标。完成设置后，AI 分析与学习建议会把它作为长期上下文。"}</p>
-            <div className="mt-4 flex flex-wrap gap-2">
-              {(focusesResult.data ?? []).length
-                ? (focusesResult.data ?? []).map((item) => <span key={item.capabilities?.code ?? item.priority} className="rounded-full bg-accent/10 px-3 py-1 text-sm font-bold text-accent">{item.priority}. {item.capabilities?.title_zh ?? item.capabilities?.title_en}</span>)
-                : <span className="text-sm text-muted">尚未选择 Current Focus</span>}
-            </div>
-          </div>
-          <Link href="/settings" className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-line px-4 font-bold">设置目标与 Focus <ArrowRight size={18} /></Link>
-        </div>
-      </section>
+      <div className="mt-8"><GrowthPlanSummary plan={growthPlan.currentPlan} confidence={growthPlan.confidence} capabilityLabels={capabilityLabels} /></div>
       <div className="mt-8 grid grid-cols-2 gap-3 lg:grid-cols-4">
         <Metric label="课程标准" value={workspace.concepts.length} suffix="项" />
         <Metric label="已有记录" value={statuses.length} suffix="项" />

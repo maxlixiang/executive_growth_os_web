@@ -1,5 +1,7 @@
 import Link from "next/link";
 import { ArrowRight, BookOpen, ChevronRight, ClipboardCheck, FileText, Plus } from "lucide-react";
+import { GrowthPlanSummary } from "@/features/growth/growth-plan-summary";
+import { getGrowthPlanWorkspace } from "@/features/growth/queries";
 import { getQuizQueue, getRecommendation, getStudyHistory } from "@/features/knowledge/queries";
 import { requireUser } from "@/lib/auth/require-user";
 
@@ -8,11 +10,12 @@ function formatDate(value: string | Date, timezone: string, options: Intl.DateTi
 }
 
 export async function Dashboard() {
-  const [{ workspace, recommendation }, { due }, history, { supabase, user }] = await Promise.all([
+  const [{ workspace, recommendation }, { due }, history, { supabase, user }, growthPlan] = await Promise.all([
     getRecommendation(),
     getQuizQueue(),
     getStudyHistory(),
     requireUser(),
+    getGrowthPlanWorkspace(),
   ]);
   const [{ data: profile }, { data: review }] = await Promise.all([
     supabase.from("profiles").select("display_name, timezone").eq("id", user.id).maybeSingle(),
@@ -24,6 +27,7 @@ export async function Dashboard() {
   const recentGap = workspace.recentGapText.split("\n").find(Boolean);
   const focusItems = workspace.focusCapabilities;
   const latestHistory = history.slice(0, 3);
+  const capabilityLabels = Object.fromEntries(growthPlan.capabilities.map((item) => [item.code, `${item.title_en} · ${item.title_zh}`]));
 
   return (
     <main className="mx-auto w-full max-w-[1220px] px-5 py-6 sm:px-8 lg:px-12 lg:py-10">
@@ -38,7 +42,9 @@ export async function Dashboard() {
         <span className="grid size-11 shrink-0 place-items-center rounded-full bg-soft text-base font-semibold lg:hidden">{displayName.slice(0, 1).toLocaleUpperCase()}</span>
       </header>
 
-      <section className="mt-8 grid gap-4 lg:grid-cols-[minmax(0,1fr)_360px]">
+      <div className="mt-8"><GrowthPlanSummary plan={growthPlan.currentPlan} confidence={growthPlan.confidence} capabilityLabels={capabilityLabels} compact /></div>
+
+      <section className="mt-5 grid gap-4 lg:grid-cols-[minmax(0,1fr)_360px]">
         <div className="rounded-2xl bg-accent-soft p-6 sm:p-8 lg:min-h-72">
           <p className="text-sm font-bold text-accent-strong">今日建议学习</p>
           <div className="mt-6 flex flex-col justify-between gap-6 lg:h-[188px]">

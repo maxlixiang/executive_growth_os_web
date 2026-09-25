@@ -62,16 +62,17 @@ function assertNoErrors(results: Array<{ error: { message: string } | null }>) {
 
 async function loadWorkspace(client: SupabaseClient<Database>, userId: string): Promise<KnowledgeWorkspace> {
   const since = new Date(Date.now() - 30 * 86_400_000).toISOString();
-  const [capabilitiesResult, categoriesResult, conceptsResult, prerequisitesResult, progressResult, focusesResult, gapsResult] = await Promise.all([
+  const [capabilitiesResult, categoriesResult, conceptsResult, prerequisitesResult, progressResult, planResult, focusesResult, gapsResult] = await Promise.all([
     client.from("capabilities").select("*").eq("is_active", true).order("sort_order"),
     client.from("knowledge_categories").select("*").eq("is_active", true).order("sort_order"),
     client.from("knowledge_concepts").select("*").eq("is_active", true).order("sort_order"),
     client.from("knowledge_concept_prerequisites").select("concept_id, prerequisite_concept_id"),
     client.from("knowledge_progress").select("*").eq("user_id", userId),
+    client.from("growth_plans").select("focus_codes").eq("user_id", userId).eq("status", "active").maybeSingle(),
     client.from("user_focuses").select("capability_id, priority").eq("user_id", userId).eq("is_active", true).order("priority"),
     client.from("growth_gaps").select("title, detail, concept_id, created_at").eq("user_id", userId).eq("gap_type", "knowledge").gte("created_at", since).order("created_at", { ascending: false }),
   ]);
-  assertNoErrors([capabilitiesResult, categoriesResult, conceptsResult, prerequisitesResult, progressResult, focusesResult, gapsResult]);
+  assertNoErrors([capabilitiesResult, categoriesResult, conceptsResult, prerequisitesResult, progressResult, planResult, focusesResult, gapsResult]);
 
   const capabilityById = new Map((capabilitiesResult.data ?? []).map((row: CapabilityRow) => [row.id, row]));
   const categoryById = new Map((categoriesResult.data ?? []).map((row: CategoryRow) => [row.id, row]));
@@ -117,10 +118,13 @@ async function loadWorkspace(client: SupabaseClient<Database>, userId: string): 
     if (code) progress[code] = mapProgress(row);
   }
   const capabilityNameById = new Map((capabilitiesResult.data ?? []).map((row) => [row.id, row.title_en]));
-  const focusCapabilities = (focusesResult.data ?? []).flatMap((row) => {
-    const name = capabilityNameById.get(row.capability_id);
-    return name ? [name] : [];
-  });
+  const capabilityNameByCode = new Map((capabilitiesResult.data ?? []).map((row) => [row.code, row.title_en]));
+  const focusCapabilities = planResult.data?.focus_codes.length
+    ? planResult.data.focus_codes.flatMap((code) => capabilityNameByCode.get(code) ?? [])
+    : (focusesResult.data ?? []).flatMap((row) => {
+      const name = capabilityNameById.get(row.capability_id);
+      return name ? [name] : [];
+    });
   const recentGapText = (gapsResult.data ?? []).map((row) =>
     [row.title, row.detail, row.concept_id ? conceptCodeById.get(row.concept_id) : null].filter(Boolean).join(" "),
   ).join("\n");

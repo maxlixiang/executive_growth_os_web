@@ -604,6 +604,7 @@ export type Database = {
           period_end: string
           period_start: string
           recommended_concept_ids: Json
+          recommended_focus_codes: Json
           recommended_practice_challenges: Json
           review_markdown: string
           updated_at: string
@@ -615,6 +616,7 @@ export type Database = {
           period_end: string
           period_start: string
           recommended_concept_ids?: Json
+          recommended_focus_codes?: Json
           recommended_practice_challenges?: Json
           review_markdown: string
           updated_at?: string
@@ -626,6 +628,7 @@ export type Database = {
           period_end?: string
           period_start?: string
           recommended_concept_ids?: Json
+          recommended_focus_codes?: Json
           recommended_practice_challenges?: Json
           review_markdown?: string
           updated_at?: string
@@ -917,6 +920,80 @@ export type Database = {
           },
         ]
       }
+      growth_plans: {
+        Row: {
+          change_reason: string | null
+          confidence_basis: Json
+          confidence_score: number
+          created_at: string
+          ended_at: string | null
+          focus_codes: string[]
+          id: string
+          long_term_goal: string
+          milestones: Json
+          phase_goal: string
+          previous_plan_id: string | null
+          rationale: string
+          source: string
+          starts_at: string
+          status: string
+          target_ends_at: string
+          updated_at: string
+          user_id: string
+          version: number
+        }
+        Insert: {
+          change_reason?: string | null
+          confidence_basis?: Json
+          confidence_score: number
+          created_at?: string
+          ended_at?: string | null
+          focus_codes: string[]
+          id?: string
+          long_term_goal: string
+          milestones?: Json
+          phase_goal: string
+          previous_plan_id?: string | null
+          rationale: string
+          source: string
+          starts_at?: string
+          status?: string
+          target_ends_at: string
+          updated_at?: string
+          user_id: string
+          version: number
+        }
+        Update: {
+          change_reason?: string | null
+          confidence_basis?: Json
+          confidence_score?: number
+          created_at?: string
+          ended_at?: string | null
+          focus_codes?: string[]
+          id?: string
+          long_term_goal?: string
+          milestones?: Json
+          phase_goal?: string
+          previous_plan_id?: string | null
+          rationale?: string
+          source?: string
+          starts_at?: string
+          status?: string
+          target_ends_at?: string
+          updated_at?: string
+          user_id?: string
+          version?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "growth_plans_previous_plan_id_fkey"
+            columns: ["previous_plan_id"]
+            isOneToOne: false
+            referencedRelation: "growth_plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_focuses: {
         Row: {
           capability_id: string
@@ -1011,6 +1088,21 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      activate_growth_plan: {
+        Args: {
+          p_change_reason: string | null
+          p_confidence_basis: Json
+          p_confidence_score: number
+          p_focus_codes: string[]
+          p_long_term_goal: string
+          p_milestones: Json
+          p_phase_goal: string
+          p_rationale: string
+          p_source: string
+          p_target_ends_at: string
+        }
+        Returns: Database["public"]["Tables"]["growth_plans"]["Row"]
+      }
       commit_study_attempt: {
         Args: { p_attempt_id: string }
         Returns: Database["public"]["Tables"]["study_sessions"]["Row"]
