@@ -1,5 +1,7 @@
 import Link from "next/link";
 import { ArrowRight, BookOpen, CheckCircle2 } from "lucide-react";
+import { ContextHelpLink } from "@/components/context-help-link";
+import { FeatureTabs, learningTabs } from "@/components/feature-tabs";
 import { PageContainer, PageHeader } from "@/components/page-header";
 import { getKnowledgeWorkspace } from "@/features/knowledge/queries";
 
@@ -10,8 +12,11 @@ export default async function KnowledgePage() {
 
   return (
     <PageContainer>
-      <PageHeader eyebrow="Knowledge Curriculum" title="知识地图" description="138 个知识点构成六项能力的共同标准。状态来自你的真实 Study 与 Quiz，不是阅读完成度。" />
-      <div className="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+      <PageHeader eyebrow="Learning Center" title="学习中心" description="在一个入口完成新知识学习、到期复习和知识地图浏览。" />
+      <FeatureTabs tabs={learningTabs} active="/knowledge" />
+      <ContextHelpLink section="learning">了解知识地图和推荐顺序</ContextHelpLink>
+      <div className="mt-8"><h2 className="text-2xl font-bold">知识地图</h2><p className="mt-2 text-sm leading-6 text-muted">138 个知识点构成六项能力的共同标准。状态来自真实学习与复习，不是阅读完成度。</p></div>
+      <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
         {workspace.capabilities.map((capability) => {
           const concepts = workspace.concepts.filter((concept) => concept.capabilityId === capability.id);
           const completed = concepts.filter((concept) => ["applied", "verified"].includes(workspace.progress[concept.code]?.status ?? "unknown")).length;

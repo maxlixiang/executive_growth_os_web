@@ -5,45 +5,24 @@ import { PageContainer, PageHeader } from "@/components/page-header";
 const helpSections = [
   {
     id: "dashboard", title: "首页", english: "Dashboard", href: "/",
-    purpose: "汇总今天最值得采取的行动：下一项学习、到期复习、最近 Gap、Focus、活动和 Review。",
+    purpose: "说明当前学习阶段、下一步行动、成长计划、下一项学习和到期复习。",
     input: "无需在本页填写。内容来自你的 Growth Profile、学习记录、复盘和实践证据。",
     output: "一个根据当前状态生成的行动入口，而不是独立的数据源。",
-    tips: ["优先处理 Study Next 或到期 Quiz。", "首页数字异常时，可到 Progress 和学习历史检查来源。"],
+    tips: ["先看当前旅程阶段和下一步。", "历史活动与 Review 已集中到历史页，不在首页重复展示。"],
   },
   {
-    id: "capture", title: "快速记录", english: "Capture", href: "/capture",
-    purpose: "保存会议、工作事件、想法、问题和待跟进事项，并可让 AI 立即分析。",
+    id: "records", title: "工作记录", english: "Records", href: "/capture",
+    purpose: "随时保存会议、工作事件、想法、问题和待跟进事项；AI 整理页自动汇总分析结果。",
     input: "尽量写清背景、你的角色、行动、判断或取舍、相关人员、结果或数字，以及仍不确定的地方。",
-    output: "“仅保存”只保留原文；“保存并 AI 分析”还会生成 Daily 分析、能力标签、Gap 和实践证据。",
-    tips: ["不要为了显得完整而补写没有发生的结果。", "会议记录可以直接粘贴，但应指出你本人做了什么。"],
+    output: "“仅保存”保留原文；“保存并 AI 分析”还会生成 AI 摘要、能力标签、Gap 和实践证据。",
+    tips: ["不需要下班后重新写一遍当天工作。", "会议记录可以直接粘贴，但应指出你本人做了什么。", "没有确认每日摘要不会扣分。"],
   },
   {
-    id: "daily", title: "每日复盘", english: "Daily", href: "/daily",
-    purpose: "用自然语言复盘当天真实工作，把经历转化为可追踪的能力信号。",
-    input: "写下事件、责任、关键判断、取舍、结果、困难和仍未理解的内容；不需要整理成表格。",
-    output: "AI 分析、责任层级提示、能力标签、Knowledge Gap、Practice Gap、练习建议和实践证据。",
-    tips: ["一次复盘聚焦一到三个重要事件即可。", "结果尚未发生时明确写“待验证”，比猜测结果更有价值。"],
-  },
-  {
-    id: "study", title: "学习", english: "Study", href: "/study",
-    purpose: "学习下一项新知识，并通过 Active Recall 和 Application Question 检验理解与应用。",
+    id: "learning", title: "学习中心", english: "Learning", href: "/study",
+    purpose: "在同一个入口完成新知识学习、到期复习和知识地图浏览。",
     input: "先用自己的话回答，不要复制定义；应用题应结合真实或明确标注的假设情境。",
-    output: "概念分、应用分、学习状态和下一次复习时间。确认提交后才进入有效学习历史。",
-    tips: ["不会时先暴露盲区，再阅读反馈。", "把假设案例写成假设，避免与真实实践证据混淆。"],
-  },
-  {
-    id: "quiz", title: "复习", english: "Quiz", href: "/quiz",
-    purpose: "在知识到期时检查是否仍能回忆并应用，使用间隔重复巩固记忆。",
-    input: "像 Study 一样独立作答，但重点是从记忆中提取，而不是重新学习新内容。",
-    output: "更新复习次数、连续成功次数、掌握状态和下一次到期时间。",
-    tips: ["没有到期项目是正常状态。", "评分异常可在学习历史中作废该次 Session。"],
-  },
-  {
-    id: "knowledge", title: "知识地图", english: "Knowledge", href: "/knowledge",
-    purpose: "浏览六大能力、分类与 138 个标准知识点，理解课程结构和个人掌握状态。",
-    input: "无需填写。可以选择任一能力或概念进入学习。",
-    output: "展示每个知识点的未学习、学习中、已应用或已验证状态。",
-    tips: ["分类是知识结构，具体中英文名称才是学习概念。", "优先遵循 Study Next，必要时再按能力自由浏览。"],
+    output: "概念分、应用分、掌握状态、复习安排，以及知识地图中的整体覆盖情况。",
+    tips: ["学习页负责新知识，复习页负责到期内容。", "知识地图用于理解结构和自由浏览。", "学习历史统一在历史页查看。"],
   },
   {
     id: "progress", title: "进度", english: "Progress", href: "/progress",
@@ -53,9 +32,23 @@ const helpSections = [
     tips: ["课程完成度不等于能力证据。", "Progress 中的证据等级来自真实工作记录的 AI 分析。"],
   },
   {
+    id: "assessment", title: "评估", english: "Assessment", href: "/assessment",
+    purpose: "用基线诊断建立初始正式评分，用自主评估查漏补缺，用双月正式评估结束 Cycle 并更新正式评分。",
+    input: "完成预学习后才能进行基线诊断；正式学习期间可发起自主评估；双月正式评估还会读取案例回答和实践证据。",
+    output: "当前能力估计、最近正式评分、六项能力评分依据、证据引用、置信度和下一 Cycle 建议。",
+    tips: ["自主评估不覆盖正式评分。", "基线诊断和双月正式评估属于可审计的正式结果。", "分数可能随遗忘或证据失效而下降。"],
+  },
+  {
+    id: "history", title: "历史", english: "History", href: "/history",
+    purpose: "按类别查找学习、工作记录、实践证据、复盘、评估以及计划与旅程变化。",
+    input: "无需填写。系统在重要操作完成后自动记录。",
+    output: "当前旅程或全部旅程的可审计时间线；归档旅程会明确标注不参与当前评分。",
+    tips: ["昵称修改等低重要性事件归入“其他”。", "历史用于回看发生了什么，不等同于知识复习。"],
+  },
+  {
     id: "evidence", title: "实践证据", english: "Evidence", href: "/evidence",
     purpose: "汇总 AI 从真实工作记录中提取的角色、行动、判断、结果与限制。",
-    input: "本页不直接填写。来源是选择“保存并 AI 分析”的快速记录，以及每日复盘。",
+    input: "本页不直接填写。来源是工作记录中选择“保存并 AI 分析”的真实事件。",
     output: "Context、User Role、Action、Decision、Outcome、Limitations、Next Evidence 和 E0–E5 等级。",
     tips: ["AI 生成内容需要由你结合真实工作核对。", "缺少可验证结果时，不应把 E1–E3 当成已取得业务成果。"],
   },
@@ -72,6 +65,13 @@ const helpSections = [
     input: "优先回答真实案例，说明你的角色、决策依据、行动、量化结果、限制和复盘。",
     output: "完整问答记录，并作为 Quarterly Review 的评估输入。",
     tips: ["不知道或没有真实案例时可以明确说明。", "不要编造数字；证据不足应保留为“不可评级”。"],
+  },
+  {
+    id: "journey", title: "学习旅程", english: "Journey", href: "/",
+    purpose: "从基础预学习开始，经基线诊断进入正式 Cycle，并通过双月正式评估持续更新方向。",
+    input: "首次确认预学习日期；更正日期或重启旅程时必须填写原因。",
+    output: "当前阶段、Cycle 起止时间、下次正式评估日期，以及可审计的旅程历史。",
+    tips: ["重新规划当前 Cycle 不等于重启学习旅程。", "重启旅程会归档旧旅程，新旅程重新从预学习开始。"],
   },
   {
     id: "plan", title: "成长计划", english: "Plan", href: "/plan",
@@ -98,8 +98,8 @@ export default function HelpPage() {
         <div className="flex items-center gap-3 text-accent-strong"><CircleHelp size={22} /><h2 className="text-xl font-bold">第一次使用，从这三步开始</h2></div>
         <ol className="mt-6 grid gap-5 md:grid-cols-3">
           <QuickStep number="1" title="设置目标" description="在成长计划中填写长期目标并确认阶段训练重点。" href="/plan" />
-          <QuickStep number="2" title="记录真实工作" description="使用 Capture 或 Daily 写下事件、角色、判断和结果。" href="/capture" />
-          <QuickStep number="3" title="学习并验证" description="完成 Study、Quiz，再用真实实践和 Review 校准能力。" href="/study" />
+          <QuickStep number="2" title="记录真实工作" description="在工作记录中随时写下事件、角色、判断和结果，AI 会自动整理。" href="/capture" />
+          <QuickStep number="3" title="学习并验证" description="在学习中心完成学习、复习与知识地图浏览，再用真实实践校准能力。" href="/study" />
         </ol>
       </section>
 

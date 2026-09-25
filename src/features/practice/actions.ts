@@ -43,7 +43,7 @@ async function persistCapture(input: z.infer<typeof captureSchema>): Promise<Cap
       p_analysis: analysisForStorage as DailyAnalysis,
     });
     if (finalizeError) throw finalizeError;
-    for (const path of ["/daily", "/evidence", "/knowledge", "/study", "/"]) revalidatePath(path);
+    for (const path of ["/capture", "/evidence", "/knowledge", "/study", "/history", "/"]) revalidatePath(path);
     return { ok: true, message: "原始记录已保存，AI 分析、Gap 与 Evidence 已生成。", captureId: capture.id, dailyId: daily?.id };
   } catch (error) {
     console.error("Daily analysis failed", error);

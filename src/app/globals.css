@@ -62,9 +62,7 @@ a {
   display: grid;
   grid-template-areas:
     "gap"
-    "focus"
-    "activity"
-    "review";
+    "focus";
 }
 
 .dashboard-details > * {
@@ -73,14 +71,9 @@ a {
 
 .dashboard-gap { grid-area: gap; }
 .dashboard-focus { grid-area: focus; }
-.dashboard-activity { grid-area: activity; }
-.dashboard-review { grid-area: review; }
-
 @media (min-width: 64rem) {
   .dashboard-details {
-    grid-template-areas:
-      "gap focus"
-      "activity review";
+    grid-template-areas: "gap focus";
     grid-template-columns: minmax(0, 1fr) 360px;
   }
 }

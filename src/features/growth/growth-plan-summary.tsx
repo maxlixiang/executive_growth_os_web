@@ -10,11 +10,13 @@ export function GrowthPlanSummary({
   confidence,
   capabilityLabels,
   compact = false,
+  showManage = true,
 }: {
   plan: Plan | null;
   confidence: DiagnosticConfidence;
   capabilityLabels: Record<string, string>;
   compact?: boolean;
+  showManage?: boolean;
 }) {
   if (!plan) {
     return <section className="rounded-2xl border border-line p-6"><p className="text-sm font-bold text-accent">当前成长计划</p><h2 className="mt-2 text-xl font-bold">先确定长期方向，再开始阶段训练</h2><p className="mt-3 text-sm leading-6 text-muted">AI 会根据能力级聚合数据生成一项低置信度初始计划，由你确认后才会启用。</p><Link href="/plan" className="mt-5 inline-flex min-h-11 items-center gap-2 font-bold text-accent">建立成长计划 <ArrowRight size={18} /></Link></section>;
@@ -28,7 +30,7 @@ export function GrowthPlanSummary({
           <h2 className="mt-2 text-xl font-bold sm:text-2xl">{plan.phase_goal}</h2>
           {!compact ? <p className="mt-3 max-w-3xl leading-7 text-muted"><strong className="text-foreground">长期目标：</strong>{plan.long_term_goal}</p> : null}
         </div>
-        <Link href="/plan" className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-line px-4 text-sm font-bold hover:border-accent hover:text-accent">管理计划 <ArrowRight size={17} /></Link>
+        {showManage ? <Link href="/plan" className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-line px-4 text-sm font-bold hover:border-accent hover:text-accent">管理计划 <ArrowRight size={17} /></Link> : null}
       </div>
       <div className="mt-5 flex flex-wrap gap-2">{plan.focus_codes.map((code) => <span key={code} className="rounded-full bg-accent-soft px-3 py-1.5 text-sm font-bold text-accent-strong">{capabilityLabels[code] ?? code}</span>)}</div>
       <div className="mt-5 grid gap-4 sm:grid-cols-[minmax(0,1fr)_220px] sm:items-end">

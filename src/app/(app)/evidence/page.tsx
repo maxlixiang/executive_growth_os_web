@@ -15,9 +15,9 @@ export default async function EvidencePage() {
         <span className="mt-0.5 grid size-10 shrink-0 place-items-center rounded-full bg-white text-accent"><Sparkles aria-hidden="true" size={20} /></span>
         <div>
           <h2 className="font-bold">实践证据如何生成？</h2>
-          <p className="mt-2 max-w-3xl text-sm leading-6 text-muted">本页不需要手动填写。当你在“快速记录”中选择“保存并 AI 分析”，或提交“每日复盘”时，AI 会从原始记录中识别角色、行动、判断、结果与限制，并保守评定 E0–E5。生成内容需要由你结合真实工作核对。</p>
+          <p className="mt-2 max-w-3xl text-sm leading-6 text-muted">本页不需要手动填写。当你在“工作记录”中选择“保存并 AI 分析”时，AI 会从原始记录中识别角色、行动、判断、结果与限制，并保守评定 E0–E5。生成内容需要由你结合真实工作核对。</p>
           <div className="flex flex-wrap items-center gap-x-5">
-            <Link href="/capture" className="mt-4 inline-flex min-h-11 items-center gap-2 rounded-xl bg-accent px-4 text-sm font-bold text-white">去快速记录 <ArrowRight size={17} /></Link>
+            <Link href="/capture" className="mt-4 inline-flex min-h-11 items-center gap-2 rounded-xl bg-accent px-4 text-sm font-bold text-white">去工作记录 <ArrowRight size={17} /></Link>
             <ContextHelpLink section="evidence">查看证据生成规则</ContextHelpLink>
           </div>
         </div>

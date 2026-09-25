@@ -16,15 +16,20 @@ export const getJourneyWorkspace = cache(async () => {
 
   let cycle = null;
   let latestAssessment = null;
+  let latestSelfAssessment = null;
+  let currentEstimate = null;
   if (journey) {
     const [cycleResult, assessmentResult] = await Promise.all([
       supabase.from("learning_cycles").select("*").eq("journey_id", journey.id).eq("status", "current").maybeSingle(),
-      supabase.from("assessment_sessions").select("*").eq("journey_id", journey.id).eq("status", "completed").order("completed_at", { ascending: false }).limit(1).maybeSingle(),
+      supabase.from("assessment_sessions").select("*").eq("journey_id", journey.id).eq("status", "completed").order("completed_at", { ascending: false }).limit(20),
     ]);
     if (cycleResult.error) throw new Error(cycleResult.error.message);
     if (assessmentResult.error) throw new Error(assessmentResult.error.message);
     cycle = cycleResult.data;
-    latestAssessment = assessmentResult.data;
+    const assessments = assessmentResult.data ?? [];
+    latestAssessment = assessments.find((item) => item.assessment_type !== "self_check") ?? null;
+    latestSelfAssessment = assessments.find((item) => item.assessment_type === "self_check") ?? null;
+    currentEstimate = assessments[0] ?? null;
   }
 
   const capabilities = capabilitiesResult.data ?? [];
@@ -43,7 +48,7 @@ export const getJourneyWorkspace = cache(async () => {
 
   return {
     user: { id: user.id, email: user.email ?? "" }, profile: profileResult.data, journey,
-    journeys: journeysResult.data ?? [], cycle, latestAssessment, capabilities, foundation,
+    journeys: journeysResult.data ?? [], cycle, latestAssessment, latestSelfAssessment, currentEstimate, capabilities, foundation,
     foundationCompleted: foundation.filter((item) => learned.has(item.id)).length,
     foundationTotal: foundation.length,
   };

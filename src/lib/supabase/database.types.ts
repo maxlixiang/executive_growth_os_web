@@ -258,6 +258,7 @@ export type Database = {
           created_at: string
           entry_type: string
           id: string
+          journey_id: string
           title: string | null
           updated_at: string
           user_id: string
@@ -270,6 +271,7 @@ export type Database = {
           created_at?: string
           entry_type: string
           id?: string
+          journey_id?: string
           title?: string | null
           updated_at?: string
           user_id: string
@@ -282,11 +284,20 @@ export type Database = {
           created_at?: string
           entry_type?: string
           id?: string
+          journey_id?: string
           title?: string | null
           updated_at?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "capture_entries_journey_user_fkey"
+            columns: ["journey_id", "user_id"]
+            isOneToOne: false
+            referencedRelation: "learning_journeys"
+            referencedColumns: ["id", "user_id"]
+          },
+        ]
       }
       daily_capability_tags: {
         Row: {
@@ -873,6 +884,7 @@ export type Database = {
           decision: string | null
           evidence_level: string
           id: string
+          journey_id: string
           limitations: string | null
           next_evidence_needed: string | null
           outcome: string | null
@@ -891,6 +903,7 @@ export type Database = {
           decision?: string | null
           evidence_level: string
           id?: string
+          journey_id?: string
           limitations?: string | null
           next_evidence_needed?: string | null
           outcome?: string | null
@@ -909,6 +922,7 @@ export type Database = {
           decision?: string | null
           evidence_level?: string
           id?: string
+          journey_id?: string
           limitations?: string | null
           next_evidence_needed?: string | null
           outcome?: string | null
@@ -932,6 +946,13 @@ export type Database = {
             columns: ["source_daily_id", "user_id"]
             isOneToOne: false
             referencedRelation: "daily_reflections"
+            referencedColumns: ["id", "user_id"]
+          },
+          {
+            foreignKeyName: "practice_evidence_journey_user_fkey"
+            columns: ["journey_id", "user_id"]
+            isOneToOne: false
+            referencedRelation: "learning_journeys"
             referencedColumns: ["id", "user_id"]
           },
         ]
@@ -1080,6 +1101,7 @@ export type Database = {
           invalidated_at: string | null
           invalidated_reason: string | null
           is_valid: boolean
+          journey_id: string
           recall_answer: string
           recall_question: string
           resulting_next_review_at: string
@@ -1102,6 +1124,7 @@ export type Database = {
           invalidated_at?: string | null
           invalidated_reason?: string | null
           is_valid?: boolean
+          journey_id?: string
           recall_answer: string
           recall_question: string
           resulting_next_review_at: string
@@ -1124,6 +1147,7 @@ export type Database = {
           invalidated_at?: string | null
           invalidated_reason?: string | null
           is_valid?: boolean
+          journey_id?: string
           recall_answer?: string
           recall_question?: string
           resulting_next_review_at?: string
@@ -1145,6 +1169,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "knowledge_concepts"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "study_sessions_journey_user_fkey"
+            columns: ["journey_id", "user_id"]
+            isOneToOne: false
+            referencedRelation: "learning_journeys"
+            referencedColumns: ["id", "user_id"]
           },
         ]
       }

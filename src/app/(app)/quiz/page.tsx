@@ -1,3 +1,5 @@
+import { ContextHelpLink } from "@/components/context-help-link";
+import { FeatureTabs, learningTabs } from "@/components/feature-tabs";
 import { PageContainer, PageHeader } from "@/components/page-header";
 import { getQuizQueue } from "@/features/knowledge/queries";
 import { StudyRunner } from "@/features/study/study-runner";
@@ -10,10 +12,12 @@ export default async function QuizPage() {
 
   return (
     <PageContainer>
-      <PageHeader eyebrow="Spaced Repetition" title="今日复习" description="Quiz 回答的是：以前学过的东西，现在还会不会？它不会混入 Study Next 的新知识推荐。" />
+      <PageHeader eyebrow="Learning Center" title="学习中心" description="在一个入口完成新知识学习、到期复习和知识地图浏览。" />
+      <FeatureTabs tabs={learningTabs} active="/quiz" />
+      <ContextHelpLink section="learning">复习如何影响掌握状态？</ContextHelpLink>
       {next ? (
         <div className="mt-8">
-          <div className="mb-5 flex flex-wrap items-end justify-between gap-3"><div><p className="text-sm font-semibold text-muted">{next.concept.capability} · {next.concept.titleEn}</p><h2 className="mt-1 text-2xl font-bold">{next.concept.titleZh}</h2></div><p className="text-sm font-semibold text-orange-700">到期：{next.progress.nextReviewAt} · 队列剩余 {due.length} 项</p></div>
+          <div className="mb-5 flex flex-wrap items-end justify-between gap-3"><div><p className="text-sm font-bold text-accent">今日复习</p><p className="mt-2 text-sm font-semibold text-muted">{next.concept.capability} · {next.concept.titleEn}</p><h2 className="mt-1 text-2xl font-bold">{next.concept.titleZh}</h2></div><p className="text-sm font-semibold text-orange-700">到期：{next.progress.nextReviewAt} · 队列剩余 {due.length} 项</p></div>
           <StudyRunner conceptId={next.concept.id} sessionType="quiz" />
         </div>
       ) : (

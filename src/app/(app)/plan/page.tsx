@@ -1,4 +1,5 @@
 import { PageContainer, PageHeader } from "@/components/page-header";
+import { ContextHelpLink } from "@/components/context-help-link";
 import { GrowthPlanManager } from "@/features/growth/growth-profile-form";
 import { GrowthPlanSummary } from "@/features/growth/growth-plan-summary";
 import { getGrowthPlanWorkspace } from "@/features/growth/queries";
@@ -14,6 +15,7 @@ export default async function PlanPage() {
 
   return <PageContainer>
     <PageHeader backHref="/" eyebrow="Long-term Growth" title="成长计划" description="长期目标保持方向稳定；AI 根据学习与实践数据建议 6–8 周阶段计划，由你确认后生效。" />
+    <ContextHelpLink section="plan">成长计划与学习 Cycle 如何配合？</ContextHelpLink>
 
     <div className="mt-8"><JourneySummary workspace={journeyWorkspace} /></div>
 
@@ -24,7 +26,7 @@ export default async function PlanPage() {
       <Layer number="4" title="每日学习计划" description="Study、Quiz 与实践任务根据实时状态动态安排。" />
     </section>
 
-    <div className="mt-8"><GrowthPlanSummary plan={workspace.currentPlan} confidence={workspace.confidence} capabilityLabels={capabilityLabels} /></div>
+    <div className="mt-8"><GrowthPlanSummary plan={workspace.currentPlan} confidence={workspace.confidence} capabilityLabels={capabilityLabels} showManage={false} /></div>
 
     <section className="mt-8 rounded-2xl bg-soft p-5 sm:p-7">
       <div className="flex flex-wrap items-end justify-between gap-3"><div><p className="text-sm font-bold text-accent">置信度如何变化</p><h2 className="mt-1 text-xl font-bold">由系统数据规则计算，不由 AI 自由打分</h2></div><p className="text-2xl font-bold text-accent">{workspace.confidence.score}<span className="text-sm text-muted"> / 100</span></p></div>

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
+import { ContextHelpLink } from "@/components/context-help-link";
 import { PageContainer, PageHeader } from "@/components/page-header";
 import { GrowthPlanSummary } from "@/features/growth/growth-plan-summary";
 import { getGrowthPlanWorkspace } from "@/features/growth/queries";
@@ -51,6 +52,7 @@ export default async function ProgressPage() {
   return (
     <PageContainer>
       <PageHeader eyebrow="Knowledge Progress" title="学习进度" description="进度来自有效 Study Session。作废错误记录后，这里会按剩余有效历史重新计算。" />
+      <ContextHelpLink section="progress">进度和能力评分有什么区别？</ContextHelpLink>
       <div className="mt-8"><GrowthPlanSummary plan={growthPlan.currentPlan} confidence={growthPlan.confidence} capabilityLabels={capabilityLabels} /></div>
       <div className="mt-8 grid grid-cols-2 gap-3 lg:grid-cols-4">
         <Metric label="课程标准" value={workspace.concepts.length} suffix="项" />

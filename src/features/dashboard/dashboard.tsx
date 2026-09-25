@@ -1,8 +1,9 @@
 import Link from "next/link";
-import { ArrowRight, BookOpen, ChevronRight, ClipboardCheck, FileText, Plus } from "lucide-react";
+import { ArrowRight, Check, ChevronRight, Plus } from "lucide-react";
+import { ContextHelpLink } from "@/components/context-help-link";
 import { GrowthPlanSummary } from "@/features/growth/growth-plan-summary";
 import { getGrowthPlanWorkspace } from "@/features/growth/queries";
-import { getQuizQueue, getRecommendation, getStudyHistory } from "@/features/knowledge/queries";
+import { getQuizQueue, getRecommendation } from "@/features/knowledge/queries";
 import { requireUser } from "@/lib/auth/require-user";
 import { JourneySummary } from "@/features/journeys/journey-summary";
 import { getJourneyWorkspace } from "@/features/journeys/queries";
@@ -12,25 +13,25 @@ function formatDate(value: string | Date, timezone: string, options: Intl.DateTi
 }
 
 export async function Dashboard() {
-  const [{ workspace, recommendation }, { due }, history, { supabase, user }, growthPlan, journeyWorkspace] = await Promise.all([
+  const [{ workspace, recommendation }, { due }, { supabase, user }, growthPlan, journeyWorkspace] = await Promise.all([
     getRecommendation(),
     getQuizQueue(),
-    getStudyHistory(),
     requireUser(),
     getGrowthPlanWorkspace(),
     getJourneyWorkspace(),
   ]);
-  const [{ data: profile }, { data: review }] = await Promise.all([
-    supabase.from("profiles").select("display_name, timezone").eq("id", user.id).maybeSingle(),
-    supabase.from("monthly_reviews").select("id, period_start").eq("user_id", user.id).order("period_start", { ascending: false }).limit(1).maybeSingle(),
-  ]);
+  const { data: profile } = await supabase.from("profiles").select("display_name, timezone").eq("id", user.id).maybeSingle();
   const timezone = profile?.timezone ?? "Asia/Shanghai";
   const displayName = profile?.display_name || user.email?.split("@")[0] || "Executive";
   const today = formatDate(new Date(), timezone, { month: "long", day: "numeric", weekday: "long" });
   const recentGap = workspace.recentGapText.split("\n").find(Boolean);
   const focusItems = workspace.focusCapabilities;
-  const latestHistory = history.slice(0, 3);
   const capabilityLabels = Object.fromEntries(growthPlan.capabilities.map((item) => [item.code, `${item.title_en} · ${item.title_zh}`]));
+  const journeyStage = journeyWorkspace.journey?.stage ?? "preparation";
+  const foundationReady = journeyWorkspace.foundationTotal > 0 && journeyWorkspace.foundationCompleted === journeyWorkspace.foundationTotal;
+  const formalDue = journeyStage === "active" && Boolean(journeyWorkspace.cycle?.assessment_due_on) && journeyWorkspace.cycle!.assessment_due_on <= new Date().toISOString().slice(0, 10);
+  const currentStep = journeyStage === "active" ? (formalDue ? 3 : 2) : foundationReady ? 1 : 0;
+  const journeySteps = ["基础预学习", "基线诊断", `正式学习 Cycle ${journeyWorkspace.cycle?.cycle_number ?? 1}`, "双月正式评估", "进入下一 Cycle"];
 
   return (
     <main className="mx-auto w-full max-w-[1220px] px-5 py-6 sm:px-8 lg:px-12 lg:py-10">
@@ -47,6 +48,14 @@ export async function Dashboard() {
 
       <div className="mt-8"><JourneySummary workspace={journeyWorkspace} compact /></div>
       <div className="mt-5"><GrowthPlanSummary plan={growthPlan.currentPlan} confidence={growthPlan.confidence} capabilityLabels={capabilityLabels} compact /></div>
+
+      <section className="mt-5 rounded-2xl border border-line bg-white p-5 sm:p-7">
+        <div className="flex flex-wrap items-start justify-between gap-4"><div><h2 className="text-xl font-bold">你的学习旅程</h2><p className="mt-2 text-sm leading-6 text-muted">先完成基础预学习和基线诊断，再以双月 Cycle 持续学习、实践和更新正式评分。</p></div><ContextHelpLink section="journey">了解完整学习流程</ContextHelpLink></div>
+        <ol className="mt-6 grid gap-3 sm:grid-cols-5">
+          {journeySteps.map((step, index) => <li key={step} className={`rounded-xl px-4 py-4 ${index === currentStep ? "bg-accent text-white" : index < currentStep ? "bg-accent-soft text-accent-strong" : "bg-soft text-muted"}`}><span className={`grid size-7 place-items-center rounded-full text-xs font-bold ${index === currentStep ? "bg-white text-accent" : "bg-white"}`}>{index < currentStep ? <Check size={15} /> : index + 1}</span><p className="mt-3 text-sm font-bold leading-5">{step}</p></li>)}
+        </ol>
+        <p className="mt-5 text-sm leading-6 text-muted"><strong className="text-ink">当前下一步：</strong>{journeyStage === "active" ? formalDue ? "本周期双月正式评估已到期，请进入评估中心。" : `继续 Cycle ${journeyWorkspace.cycle?.cycle_number ?? 1}；下一次正式评估 ${journeyWorkspace.cycle?.assessment_due_on ?? "待安排"}。` : foundationReady ? "基础预学习已完成，可以主动发起基线诊断。" : `继续完成基础概念，目前 ${journeyWorkspace.foundationCompleted}/${journeyWorkspace.foundationTotal || 24}。`}</p>
+      </section>
 
       <section className="mt-5 grid gap-4 lg:grid-cols-[minmax(0,1fr)_360px]">
         <div className="rounded-2xl bg-accent-soft p-6 sm:p-8 lg:min-h-72">
@@ -99,30 +108,6 @@ export async function Dashboard() {
           </ul>
         </section>
 
-        <section className="dashboard-activity pt-8">
-          <SectionTitle title="最近活动" />
-          <div className="mt-4 divide-y divide-line border-y border-line">
-            {latestHistory.length > 0 ? latestHistory.map(({ session, concept }) => (
-              <ActivityRow
-                key={session.id}
-                icon={session.session_type === "quiz" ? ClipboardCheck : BookOpen}
-                kind={session.session_type === "quiz" ? "Quiz" : "Study"}
-                title={concept ? `${concept.title_en} · ${concept.title_zh}` : "Knowledge session"}
-                date={formatDate(session.committed_at, timezone, { month: "numeric", day: "numeric" })}
-                href={`/study/history/${session.id}`}
-              />
-            )) : <p className="py-6 text-sm text-muted">完成第一次 Study 后，活动会出现在这里。</p>}
-          </div>
-        </section>
-
-        <section className="dashboard-review border-t border-line pt-8 lg:border-l lg:pl-8">
-          <SectionTitle title="最近 Review" />
-          <Link href={review ? `/reviews/monthly/${review.period_start.slice(0, 7)}` : "/reviews"} className="mt-4 flex min-h-16 items-center gap-3 border-b border-line py-3 hover:text-accent">
-            <span className="grid size-10 place-items-center rounded-full bg-soft"><FileText aria-hidden="true" size={20} strokeWidth={1.75} /></span>
-            <span className="flex-1 font-semibold">{review ? `${formatDate(review.period_start, timezone, { year: "numeric", month: "long" })} Monthly Review` : "尚未生成 Monthly Review"}</span>
-            <ChevronRight aria-hidden="true" size={19} className="text-muted" />
-          </Link>
-        </section>
       </div>
     </main>
   );
@@ -133,15 +118,4 @@ function SectionTitle({ title, href }: { title: string; href?: string }) {
     <><h2 className="text-[20px] font-bold tracking-[-0.02em]">{title}</h2>{href ? <ChevronRight aria-hidden="true" size={20} className="text-muted" /> : null}</>
   );
   return href ? <Link href={href} className="flex min-h-11 items-center justify-between hover:text-accent">{content}</Link> : <div className="flex min-h-11 items-center justify-between">{content}</div>;
-}
-
-function ActivityRow({ icon: Icon, kind, title, date, href }: { icon: typeof BookOpen; kind: string; title: string; date: string; href: string }) {
-  return (
-    <Link href={href} className="flex min-h-20 items-center gap-3 py-3 hover:text-accent">
-      <span className="grid size-11 shrink-0 place-items-center rounded-full bg-soft"><Icon aria-hidden="true" size={21} strokeWidth={1.75} /></span>
-      <div className="min-w-0 flex-1"><p className="text-xs font-semibold text-muted">{kind}</p><p className="mt-1 truncate text-[15px] font-semibold">{title}</p></div>
-      <time className="shrink-0 text-sm text-muted">{date}</time>
-      <ChevronRight aria-hidden="true" size={18} className="text-muted" />
-    </Link>
-  );
 }
