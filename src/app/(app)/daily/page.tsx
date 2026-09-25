@@ -1,3 +1,4 @@
+import { ContextHelpLink } from "@/components/context-help-link";
 import { PageContainer, PageHeader } from "@/components/page-header";
 import { DailyForm } from "@/features/practice/daily-form";
 import { getDailyFeed } from "@/features/practice/queries";
@@ -8,6 +9,7 @@ export default async function DailyPage() {
   const { daily, tags, gaps } = await getDailyFeed();
   return <PageContainer>
     <PageHeader eyebrow="Practice Engine" title="Daily Reflection" description="用自然语言复盘真实工作。AI 会识别责任、判断、取舍、结果、证据与缺口。" />
+    <ContextHelpLink section="daily">如何进行一次有效复盘？</ContextHelpLink>
     <DailyForm />
     <section className="mt-10"><h2 className="text-xl font-bold">最近分析</h2><div className="mt-4 space-y-4">
       {daily.length ? daily.map((item) => {

@@ -2,6 +2,7 @@ import {
   BarChart3,
   BookOpen,
   CalendarDays,
+  CircleHelp,
   ClipboardCheck,
   FileText,
   Gauge,
@@ -23,6 +24,7 @@ export const desktopNavItems = [
   { href: "/evidence", label: "实践证据", secondary: "Evidence", icon: FileText },
   { href: "/reviews", label: "复盘", secondary: "Reviews", icon: Gauge },
   { href: "/interviews", label: "模拟面试", secondary: "Interviews", icon: MessageSquareText },
+  { href: "/help", label: "帮助", secondary: "Help", icon: CircleHelp },
 ] as const;
 
 export const mobileNavItems = [

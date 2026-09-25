@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { ArrowRight, BookOpen, Clock3, History } from "lucide-react";
+import { ContextHelpLink } from "@/components/context-help-link";
 import { PageContainer, PageHeader } from "@/components/page-header";
 import { getRecommendation, getStudyHistory } from "@/features/knowledge/queries";
 
@@ -11,6 +12,7 @@ export default async function StudyPage() {
   return (
     <PageContainer>
       <PageHeader eyebrow="Knowledge Engine" title="学习中心" description="Study 负责下一项新知识或继续深入；到期复习由 Quiz 负责。" />
+      <ContextHelpLink section="study">了解学习、评分与确认流程</ContextHelpLink>
       {recommendation ? (
         <section className="mt-8 rounded-2xl bg-accent-soft p-6 sm:p-8">
           <p className="text-sm font-bold text-accent-strong">Study Next</p>
