@@ -28,7 +28,7 @@ export default async function CapabilityKnowledgePage({ params }: { params: Prom
                 return (
                   <Link key={concept.id} href={`/study/${capability.code}/${concept.code}`} className="group flex min-h-24 items-center gap-4 py-4">
                     <span className="w-8 shrink-0 text-sm font-bold tabular-nums text-muted">{String(concept.sortOrder).padStart(2, "0")}</span>
-                    <div className="min-w-0 flex-1"><p className="font-bold group-hover:text-accent">{concept.titleZh}</p><p className="mt-1 truncate text-sm text-muted">{concept.titleEn}</p></div>
+                    <div className="min-w-0 flex-1"><p className="text-[17px] font-bold group-hover:text-accent">{concept.titleEn}</p><p className="mt-1 truncate text-sm text-muted">{concept.titleZh}</p></div>
                     <StatusBadge status={status} />
                     <ArrowRight size={18} className="hidden text-muted sm:block" />
                   </Link>
