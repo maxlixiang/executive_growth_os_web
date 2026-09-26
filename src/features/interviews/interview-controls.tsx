@@ -24,7 +24,7 @@ export function InterviewControls({ id, status, lastRole }: { id: string; status
   </form>;
   return <form action={continueAction} className="mt-8 rounded-2xl border border-line p-5">
     <input type="hidden" name="id" value={id} />
-    <p className="text-sm leading-6 text-muted">上一条回答已经安全保存。继续后会生成下一问，或在第三轮后生成季度评估。</p>
+    <p className="text-sm leading-6 text-muted">上一条回答已经安全保存。继续后会生成下一问，或在第三轮后生成本次练习反馈。</p>
     <button disabled={continuePending} className="mt-4 min-h-12 rounded-xl border border-accent px-5 font-bold text-accent">{continuePending ? "正在继续…" : "继续访谈"}</button>
     {continueState.message ? <p role="status" className={`mt-3 text-sm ${continueState.ok ? "text-emerald-700" : "text-red-700"}`}>{continueState.message}</p> : null}
   </form>;

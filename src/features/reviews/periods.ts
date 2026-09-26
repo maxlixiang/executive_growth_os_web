@@ -52,3 +52,11 @@ export function currentMonthKey(now = new Date()) {
 export function currentQuarterKey(now = new Date()) {
   return `${now.getFullYear()}-Q${Math.floor(now.getMonth() / 3) + 1}`;
 }
+
+export function customPeriod(start: string, end: string): ReviewPeriod | null {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(start) || !/^\d{4}-\d{2}-\d{2}$/.test(end) || end < start) return null;
+  const next = new Date(`${end}T00:00:00.000Z`);
+  if (Number.isNaN(next.getTime())) return null;
+  next.setUTCDate(next.getUTCDate() + 1);
+  return { key: `${start}_${end}`, start, end, nextStart: next.toISOString().slice(0, 10) };
+}

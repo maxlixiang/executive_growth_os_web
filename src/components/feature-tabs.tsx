@@ -36,3 +36,15 @@ export const recordTabs = [
   { href: "/capture", label: "随手记录" },
   { href: "/capture?view=analysis", label: "AI 分析与实践证据" },
 ] as const;
+
+export const growthTabs = [
+  { href: "/plan", label: "成长概览与计划" },
+  { href: "/progress", label: "能力进度" },
+] as const;
+
+export const assessmentTabs = [
+  { href: "/assessment", label: "当前评估" },
+  { href: "/reviews", label: "自主复盘" },
+  { href: "/interviews", label: "模拟面试" },
+  { href: "/assessment?view=history", label: "历史结果" },
+] as const;

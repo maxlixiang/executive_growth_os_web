@@ -144,3 +144,12 @@ export async function generateQuarterlyAssessment(period: string, context: strin
     recent_training_direction: text(raw.recent_training_direction ?? currentState.recent_training_direction, "围绕季度评估暴露的 Executive-Level Gap 进行刻意练习。"),
   });
 }
+
+export async function generatePracticeInterviewFeedback(context: string, transcript: string) {
+  const raw = await askDeepSeekJson({
+    system: "你是严苛、中立、Evidence First 的高管面试教练。这是练习反馈，不是正式评分。仅依据用户回答，区分团队成果与本人贡献，指出证据充分处、缺失处、判断质量和下一步练习；不得修改正式评分或虚构事实。feedback_markdown 必须包含 Overall Feedback、Strong Answers、Evidence Gaps、Reasoning Gaps、Next Practice。所有输出使用中文。",
+    user: `请为本次自主模拟面试生成练习反馈。\n\n成长上下文：\n${context}\n\n完整访谈：\n${transcript}`,
+    schema: looseObjectSchema,
+  });
+  return text(raw.feedback_markdown ?? raw.assessment_markdown ?? raw.feedback ?? raw.review, "本次回答已保存，但AI没有返回完整反馈。请结合原始问答自行复盘。");
+}

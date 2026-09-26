@@ -7,6 +7,8 @@ import { desktopNavItems, mobileNavItems, settingsItem } from "./nav-items";
 function isCurrent(pathname: string, href: string) {
   if (href === "/study" && (pathname.startsWith("/quiz") || pathname.startsWith("/knowledge"))) return true;
   if (href === "/capture" && (pathname.startsWith("/daily") || pathname.startsWith("/evidence"))) return true;
+  if (href === "/plan" && pathname.startsWith("/progress")) return true;
+  if (href === "/assessment" && (pathname.startsWith("/reviews") || pathname.startsWith("/interviews"))) return true;
   return href === "/" ? pathname === href : pathname.startsWith(href);
 }
 

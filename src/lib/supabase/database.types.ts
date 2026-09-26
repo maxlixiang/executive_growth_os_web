@@ -501,30 +501,39 @@ export type Database = {
         Row: {
           completed_at: string | null
           created_at: string
+          feedback_markdown: string | null
           id: string
-          quarterly_review_id: string
+          journey_id: string
+          quarterly_review_id: string | null
           started_at: string
           status: string
+          title: string
           updated_at: string
           user_id: string
         }
         Insert: {
           completed_at?: string | null
           created_at?: string
+          feedback_markdown?: string | null
           id?: string
-          quarterly_review_id: string
+          journey_id?: string
+          quarterly_review_id?: string | null
           started_at?: string
           status?: string
+          title?: string
           updated_at?: string
           user_id: string
         }
         Update: {
           completed_at?: string | null
           created_at?: string
+          feedback_markdown?: string | null
           id?: string
-          quarterly_review_id?: string
+          journey_id?: string
+          quarterly_review_id?: string | null
           started_at?: string
           status?: string
+          title?: string
           updated_at?: string
           user_id?: string
         }
@@ -840,36 +849,45 @@ export type Database = {
         Row: {
           created_at: string
           id: string
+          journey_id: string
           period_end: string
           period_start: string
+          review_number: number
           recommended_concept_ids: Json
           recommended_focus_codes: Json
           recommended_practice_challenges: Json
           review_markdown: string
+          title: string
           updated_at: string
           user_id: string
         }
         Insert: {
           created_at?: string
           id?: string
+          journey_id?: string
           period_end: string
           period_start: string
+          review_number: number
           recommended_concept_ids?: Json
           recommended_focus_codes?: Json
           recommended_practice_challenges?: Json
           review_markdown: string
+          title: string
           updated_at?: string
           user_id: string
         }
         Update: {
           created_at?: string
           id?: string
+          journey_id?: string
           period_end?: string
           period_start?: string
+          review_number?: number
           recommended_concept_ids?: Json
           recommended_focus_codes?: Json
           recommended_practice_challenges?: Json
           review_markdown?: string
+          title?: string
           updated_at?: string
           user_id?: string
         }
@@ -1399,6 +1417,18 @@ export type Database = {
       finalize_capture_analysis: {
         Args: { p_analysis: Json; p_capture_id: string }
         Returns: Database["public"]["Tables"]["daily_reflections"]["Row"]
+      }
+      create_flexible_review: {
+        Args: {
+          p_period_end: string
+          p_period_start: string
+          p_recommended_concept_ids: Json
+          p_recommended_focus_codes: Json
+          p_recommended_practice_challenges: Json
+          p_review_markdown: string
+          p_title: string
+        }
+        Returns: Database["public"]["Tables"]["monthly_reviews"]["Row"]
       }
       finalize_monthly_review: {
         Args: {

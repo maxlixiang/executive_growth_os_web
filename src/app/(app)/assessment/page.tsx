@@ -1,15 +1,34 @@
 import Link from "next/link";
 import { ArrowRight, CheckCircle2, Circle, Clock3, Gauge, ShieldCheck } from "lucide-react";
 import { ContextHelpLink } from "@/components/context-help-link";
+import { assessmentTabs, FeatureTabs } from "@/components/feature-tabs";
 import { PageContainer, PageHeader } from "@/components/page-header";
 import { capabilityWeights } from "@/features/assessment/readiness";
 import { JourneySummary } from "@/features/journeys/journey-summary";
 import { getJourneyWorkspace } from "@/features/journeys/queries";
+import { getReviewHistory } from "@/features/reviews/queries";
+import { requireUser } from "@/lib/auth/require-user";
 
 export const dynamic = "force-dynamic";
 
-export default async function AssessmentPage() {
+export default async function AssessmentPage({ searchParams }: { searchParams: Promise<{ view?: string }> }) {
+  const view = (await searchParams).view === "history" ? "history" : "current";
   const workspace = await getJourneyWorkspace();
+  if (view === "history") {
+    const [{ supabase, user }, history] = await Promise.all([requireUser(), getReviewHistory()]);
+    const assessments = workspace.journey
+      ? await supabase.from("assessment_sessions").select("*").eq("user_id", user.id).eq("journey_id", workspace.journey.id).order("created_at", { ascending: false })
+      : { data: [], error: null };
+    if (assessments.error) throw new Error(assessments.error.message);
+    const labels: Record<string, string> = { baseline: "基线诊断", self_check: "自主评估", formal: "双月正式评估" };
+    return <PageContainer>
+      <PageHeader backHref="/" eyebrow="Assessment History" title="评估与复盘" description="集中查看正式评估、自主评估、历次复盘和模拟面试；不同结果不会相互覆盖。" />
+      <FeatureTabs tabs={assessmentTabs} active="/assessment?view=history" />
+      <section className="mt-9"><h2 className="text-xl font-bold">评估结果</h2><div className="mt-4 divide-y divide-line border-y border-line">{assessments.data?.length ? assessments.data.map((item) => <article key={item.id} className="py-4"><div className="flex flex-wrap items-center justify-between gap-3"><p className="font-bold">{labels[item.assessment_type] ?? "能力评估"}</p><span className="text-sm font-bold">{item.readiness_score == null ? "尚无分数" : `${item.readiness_score}/100`}</span></div><p className="mt-1 text-sm text-muted">{item.status} · {new Date(item.completed_at ?? item.created_at).toLocaleString("zh-CN")}</p></article>) : <p className="py-6 text-muted">尚无评估结果。</p>}</div></section>
+      <section className="mt-9"><h2 className="text-xl font-bold">历次复盘</h2><div className="mt-4 divide-y divide-line border-y border-line">{history.monthly.length ? history.monthly.map((item) => <Link key={item.id} href={`/reviews/${item.id}`} className="flex min-h-16 items-center justify-between gap-4 py-3 hover:text-accent"><span><strong>第{item.review_number}次复盘</strong><span className="ml-3 text-sm text-muted">{item.period_start}—{item.period_end}</span></span><ArrowRight size={17} /></Link>) : <p className="py-6 text-muted">尚无复盘结果。</p>}</div></section>
+      <section className="mt-9"><h2 className="text-xl font-bold">模拟面试</h2><div className="mt-4 divide-y divide-line border-y border-line">{history.interviews.length ? history.interviews.map((item) => <Link key={item.id} href={`/interviews/${item.id}`} className="flex min-h-16 items-center justify-between gap-4 py-3 hover:text-accent"><span><strong>{item.title}</strong><span className="ml-3 text-sm text-muted">{item.status === "completed" ? "已完成" : "进行中"}</span></span><ArrowRight size={17} /></Link>) : <p className="py-6 text-muted">尚无模拟面试。</p>}</div></section>
+    </PageContainer>;
+  }
   const byCapability = workspace.foundation.reduce((map, concept) => {
     const items = map.get(concept.capability_id) ?? [];
     items.push(concept);
@@ -22,7 +41,8 @@ export default async function AssessmentPage() {
 
   return (
     <PageContainer>
-      <PageHeader backHref="/" eyebrow="Assessment" title="评估中心" description="基线诊断建立初始分数；自主评估用于查漏补缺；双月正式评估更新可审计的正式评分。" />
+      <PageHeader backHref="/" eyebrow="Current Assessment" title="评估与复盘" description="基线诊断建立初始分数；自主评估用于查漏补缺；双月正式评估更新可审计的正式评分。" />
+      <FeatureTabs tabs={assessmentTabs} active="/assessment" />
       <ContextHelpLink section="assessment">了解三类评估、评分和 Cycle 规则</ContextHelpLink>
       <div className="mt-7"><JourneySummary workspace={workspace} /></div>
 
