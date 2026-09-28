@@ -29,13 +29,13 @@ export function DesktopNavigation({ displayName }: { displayName: string }) {
               key={item.href}
               href={item.href}
               aria-current={active ? "page" : undefined}
-              className={`flex min-h-12 items-center gap-3 rounded-lg px-3 text-[14px] font-medium transition-colors ${
+              className={`flex min-h-12 items-center gap-2.5 rounded-lg px-3 text-[14px] font-medium transition-colors ${
                 active ? "bg-accent-soft text-accent-strong" : "text-ink hover:bg-white"
               }`}
             >
               <Icon aria-hidden="true" size={20} strokeWidth={1.75} />
               <span className="shrink-0 whitespace-nowrap">{item.label}</span>
-              <span className="min-w-0 truncate whitespace-nowrap text-muted">{item.secondary}</span>
+              <span className="min-w-0 truncate whitespace-nowrap text-[11px] text-muted">{item.secondary}</span>
             </Link>
           );
         })}
