@@ -19,10 +19,10 @@ const helpSections = [
   },
   {
     id: "learning", title: "学习中心", english: "Learning", href: "/study",
-    purpose: "在同一个入口完成新知识学习、到期复习和知识地图浏览。",
+    purpose: "在同一个入口完成基础预学习、正式阶段学习、到期复习和知识地图浏览；页面会根据当前旅程阶段切换下一步。",
     input: "先用自己的话回答，不要复制定义；应用题应结合真实或明确标注的假设情境。",
-    output: "概念分、应用分、掌握状态、复习安排，以及知识地图中的整体覆盖情况。",
-    tips: ["学习页负责新知识，复习页负责到期内容。", "知识地图用于理解结构和自由浏览。", "学习历史统一在历史页查看。"],
+    output: "基础预学习进度，或正式 Cycle 中的概念分、应用分、掌握状态、复习安排和知识覆盖情况。",
+    tips: ["预学习阶段只推进 24 项核心概念，不使用正式阶段的动态推荐。", "基线诊断或正式开始待确认时，学习中心会停止推荐并引导你完成该节点。", "知识地图用于理解结构和自由浏览；学习历史统一在历史页查看。"],
   },
   {
     id: "plan", title: "成长中心", english: "Growth", href: "/plan",
@@ -41,9 +41,9 @@ const helpSections = [
   {
     id: "assessment", title: "评估与复盘", english: "Assessment & Review", href: "/assessment",
     purpose: "在一个一级入口中完成正式评估、自主复盘和模拟面试，并集中查看历史结果。",
-    input: "完成预学习后可进行基线诊断；正式学习期间可自主评估，并按双月周期进行正式评估。自主复盘和模拟面试由你随时发起。",
-    output: "正式评估生成当前评分与评分依据；自主复盘生成所选时间范围的事实总结；模拟面试只生成练习反馈。",
-    tips: ["用页面上方页签切换当前评估、自主复盘、模拟面试和历史结果。", "自主复盘与模拟面试都不会直接覆盖正式评分。", "基线诊断和双月正式评估属于可审计的正式结果。"],
+    input: "完成 24 项预学习后发起基线诊断；基线完成后，正式旅程还需确认正式起始日。进入 Cycle 后可自主评估，并按双月周期进行正式评估。",
+    output: "基线诊断建立初始正式评分；自主评估更新当前能力估计；双月正式评估更新正式评分并推进 Cycle。自主复盘和模拟面试不会覆盖正式评分。",
+    tips: ["用页面上方页签切换当前评估、自主复盘、模拟面试和历史结果。", "试用旅程完成基线后不会自动转为正式学习。", "只有基线诊断和双月正式评估属于可审计的正式评分。"],
   },
   {
     id: "reviews", title: "自主复盘", english: "Flexible Review", href: "/reviews",
@@ -61,10 +61,10 @@ const helpSections = [
   },
   {
     id: "journey", title: "学习旅程", english: "Journey", href: "/",
-    purpose: "从基础预学习开始，经基线诊断进入正式 Cycle，并通过双月正式评估持续更新方向。",
-    input: "首次确认预学习日期；更正日期或重启旅程时必须填写原因。",
-    output: "当前阶段、Cycle 起止时间、下次正式评估日期，以及可审计的旅程历史。",
-    tips: ["重新规划当前 Cycle 不等于重启学习旅程。", "重启旅程会归档旧旅程，新旅程重新从预学习开始。"],
+    purpose: "从基础预学习开始，经基线诊断和正式开始确认进入 Cycle，再通过双月正式评估持续校准方向。",
+    input: "首次选择试用或正式旅程并确认预学习日期；基线完成后，正式旅程还需确认正式起始日。更正日期或重启时必须填写原因。",
+    output: "相互隔离的预学习阶段、初始评分、正式 Cycle、下次正式评估日期，以及可审计的旅程历史。",
+    tips: ["预学习和基线诊断不属于 Cycle 1。", "试用旅程不会自动进入正式学习；正式使用时要新建正式旅程。", "重新规划当前 Cycle 不等于重启学习旅程；重启会归档旧旅程并从预学习重新开始。"],
   },
   {
     id: "settings", title: "设置", english: "Settings", href: "/settings",
@@ -81,11 +81,16 @@ export default function HelpPage() {
       <PageHeader backHref="/" eyebrow="Product Guide" title="使用帮助" description="了解每个页面的用途、需要提供的数据、系统会生成的结果，以及怎样获得更可靠的 AI 分析。" />
 
       <section className="mt-8 rounded-2xl bg-accent-soft p-6 sm:p-8">
-        <div className="flex items-center gap-3 text-accent-strong"><CircleHelp size={22} /><h2 className="text-xl font-bold">第一次使用，从这三步开始</h2></div>
-        <ol className="mt-6 grid gap-5 md:grid-cols-3">
-          <QuickStep number="1" title="设置目标" description="在成长计划中填写长期目标并确认阶段训练重点。" href="/plan" />
-          <QuickStep number="2" title="记录真实工作" description="在工作记录中随时写下事件、角色、判断和结果，AI 会自动整理。" href="/capture" />
-          <QuickStep number="3" title="学习并验证" description="在学习中心完成学习、复习与知识地图浏览，再用真实实践校准能力。" href="/study" />
+        <div className="flex items-center gap-3 text-accent-strong"><CircleHelp size={22} /><h2 className="text-xl font-bold">第一次使用，按这个顺序走完</h2></div>
+        <p className="mt-3 max-w-3xl text-sm leading-6 text-muted">这不是七个每天都要做的任务，而是一条阶段路线。首页会持续告诉你当前所在阶段和唯一的优先下一步。</p>
+        <ol className="mt-6 grid gap-x-6 gap-y-7 md:grid-cols-2 xl:grid-cols-4">
+          <QuickStep number="1" title="建立学习旅程" description="选择试用或正式旅程，确认基础预学习开始日期。" href="/" />
+          <QuickStep number="2" title="完成基础预学习" description="学习六项能力各 4 个核心概念，共 24 项；此时还没有正式评分。" href="/study" />
+          <QuickStep number="3" title="进行基线诊断" description="准备好后主动发起，建立第一份可审计的初始正式评分。" href="/assessment" />
+          <QuickStep number="4" title="确认正式开始" description="正式旅程确认起始日后进入 Cycle 1；试用旅程需另建正式旅程。" href="/assessment" />
+          <QuickStep number="5" title="按 Cycle 学习与实践" description="依据 Focus 学习、复习并记录真实工作，确认可参与评估的实践证据。" href="/plan" />
+          <QuickStep number="6" title="按需复盘与自测" description="可随时自主复盘、进行能力自测或模拟面试；这些不会覆盖正式评分。" href="/assessment" />
+          <QuickStep number="7" title="完成双月正式评估" description="到期后更新正式评分并进入下一 Cycle，继续查漏补缺。" href="/assessment" />
         </ol>
       </section>
 

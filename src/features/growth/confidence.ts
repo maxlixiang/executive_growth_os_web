@@ -39,8 +39,8 @@ export function calculateDiagnosticConfidence(input: ConfidenceInputs): Diagnost
     { key: "analyzedReflections", label: "工作复盘", points: capped(input.analyzedReflections, 2, 10), maximum: 10, detail: `${input.analyzedReflections} 条已分析工作记录。` },
     { key: "practiceEvidence", label: "实践证据", points: capped(input.practiceEvidence, 2, 10), maximum: 10, detail: `${input.practiceEvidence} 条实践证据。` },
     { key: "evidencedCapabilities", label: "证据覆盖", points: capped(input.evidencedCapabilities, 2.5, 15), maximum: 15, detail: `证据覆盖 ${input.evidencedCapabilities}/6 项能力。` },
-    { key: "monthlyReviews", label: "月度校准", points: capped(input.monthlyReviews, 5, 5), maximum: 5, detail: `${input.monthlyReviews} 次月度复盘。` },
-    { key: "completedQuarterlyReviews", label: "季度校准", points: capped(input.completedQuarterlyReviews, 10, 10), maximum: 10, detail: `${input.completedQuarterlyReviews} 次完整季度评估。` },
+    { key: "monthlyReviews", label: "自主复盘", points: capped(input.monthlyReviews, 5, 5), maximum: 5, detail: `${input.monthlyReviews} 次已完成自主复盘。` },
+    { key: "completedQuarterlyReviews", label: "正式评估", points: capped(input.completedQuarterlyReviews, 10, 10), maximum: 10, detail: `${input.completedQuarterlyReviews} 次完整正式评估。` },
   ];
   const score = Math.min(100, factors.reduce((total, factor) => total + factor.points, 0));
   const level = score < 40 ? "low" : score < 70 ? "medium" : "high";
@@ -48,7 +48,7 @@ export function calculateDiagnosticConfidence(input: ConfidenceInputs): Diagnost
   const nextStep = level === "low"
     ? "继续完成基础学习，并记录至少两次包含本人判断与结果的真实工作事件。"
     : level === "medium"
-      ? "扩大实践证据的能力覆盖，并通过月度或季度复盘校准阶段方向。"
+      ? "扩大实践证据的能力覆盖，并通过自主复盘或正式评估校准阶段方向。"
       : "数据基础较充分；仍需用最新工作结果持续校准，而不是把高置信度当成能力认证。";
   return { score, level, label, factors, nextStep, version: 1 };
 }

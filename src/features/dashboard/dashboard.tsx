@@ -8,6 +8,7 @@ import { requireUser } from "@/lib/auth/require-user";
 import { JourneySummary } from "@/features/journeys/journey-summary";
 import { getJourneyWorkspace } from "@/features/journeys/queries";
 import { InitialJourneyForm } from "@/features/journeys/journey-forms";
+import { getJourneyPhase, journeyPhaseStep } from "@/features/journeys/presentation";
 
 function formatDate(value: string | Date, timezone: string, options: Intl.DateTimeFormatOptions) {
   return new Intl.DateTimeFormat("zh-CN", { timeZone: timezone, ...options }).format(new Date(value));
@@ -35,10 +36,44 @@ export async function Dashboard() {
   const journeyStage = journeyWorkspace.journey?.stage ?? "preparation";
   const foundationReady = journeyWorkspace.foundationTotal > 0 && journeyWorkspace.foundationCompleted === journeyWorkspace.foundationTotal;
   const formalDue = journeyStage === "active" && Boolean(journeyWorkspace.cycle?.assessment_due_on) && journeyWorkspace.cycle!.assessment_due_on <= new Date().toISOString().slice(0, 10);
-  const currentStep = journeyStage === "active" ? (formalDue ? 3 : 2) : foundationReady ? 1 : 0;
-  const journeySteps = ["基础预学习", "基线诊断", `正式学习 Cycle ${journeyWorkspace.cycle?.cycle_number ?? 1}`, "双月正式评估", "进入下一 Cycle"];
+  const journeyPhase = getJourneyPhase({
+    mode: journeyWorkspace.journey.mode,
+    stage: journeyStage,
+    baselineCompletedOn: journeyWorkspace.journey.baseline_completed_on,
+    foundationReady,
+    formalAssessmentDue: formalDue,
+  });
+  const currentStep = journeyPhaseStep(journeyPhase);
+  const journeySteps = [
+    "基础预学习",
+    "基线诊断",
+    journeyPhase === "trial_complete" ? "建立正式旅程" : "确认正式开始",
+    `正式学习 Cycle ${journeyWorkspace.cycle?.cycle_number ?? 1}`,
+    "双月正式评估",
+    "进入下一 Cycle",
+  ];
   const foundationRecommendation = journeyWorkspace.nextFoundation ? workspace.concepts.find((item) => item.id === journeyWorkspace.nextFoundation?.id) : null;
-  const todayRecommendation = journeyStage === "active" ? recommendation : foundationRecommendation ? { concept: foundationRecommendation, reasons: ["基础预学习阶段按六项能力各 4 个核心概念推进；完成 24 项后才开放基线诊断。"] } : recommendation;
+  const todayRecommendation = journeyPhase === "cycle" || journeyPhase === "formal_assessment"
+    ? recommendation
+    : journeyPhase === "foundation" && foundationRecommendation
+      ? { concept: foundationRecommendation, reasons: ["基础预学习按六项能力各 4 个核心概念推进；完成 24 项后再进行基线诊断。"] }
+      : null;
+  const nextAction = journeyPhase === "foundation"
+    ? `继续基础预学习，目前 ${journeyWorkspace.foundationCompleted}/${journeyWorkspace.foundationTotal || 24}。`
+    : journeyPhase === "baseline"
+      ? "24 项基础概念已完成；请主动发起基线诊断，建立第一个正式评分。"
+      : journeyPhase === "formal_confirmation"
+        ? "基线诊断已完成；请确认正式学习起始日，随后进入 Cycle 1。"
+        : journeyPhase === "trial_complete"
+          ? "试用基线诊断已完成；准备正式使用时，请归档试用数据并建立正式旅程。"
+          : journeyPhase === "formal_assessment"
+            ? "本 Cycle 的双月正式评估已到期；完成后系统会更新正式评分并进入下一 Cycle。"
+            : `继续 Cycle ${journeyWorkspace.cycle?.cycle_number ?? 1} 的学习与实践；下一次正式评估 ${journeyWorkspace.cycle?.assessment_due_on ?? "待安排"}。`;
+  const stageAction = journeyPhase === "trial_complete"
+    ? { href: "/settings", label: "建立正式旅程", title: "试用基线已完成", description: "试用旅程不会自动转为正式学习。确认准备好后，归档试用旅程并从新的正式旅程开始。" }
+    : journeyPhase === "baseline" || journeyPhase === "formal_confirmation"
+      ? { href: "/assessment", label: journeyPhase === "baseline" ? "开始基线诊断" : "确认正式开始", title: journeyPhase === "baseline" ? "准备进行基线诊断" : "基线诊断已经完成", description: journeyPhase === "baseline" ? "完成诊断后，AI 才会生成可审计的初始评分。" : "确认正式学习起始日后，系统会建立 Cycle 1 和双月评估日期。" }
+      : null;
 
   return (
     <main className="mx-auto w-full max-w-[1220px] px-5 py-6 sm:px-8 lg:px-12 lg:py-10">
@@ -57,18 +92,22 @@ export async function Dashboard() {
       <div className="mt-5"><GrowthPlanSummary plan={growthPlan.currentPlan} confidence={growthPlan.confidence} capabilityLabels={capabilityLabels} compact /></div>
 
       <section className="mt-5 rounded-2xl border border-line bg-white p-5 sm:p-7">
-        <div className="flex flex-wrap items-start justify-between gap-4"><div><h2 className="text-xl font-bold">你的学习旅程</h2><p className="mt-2 text-sm leading-6 text-muted">先完成基础预学习和基线诊断，再以双月 Cycle 持续学习、实践和更新正式评分。</p></div><ContextHelpLink section="journey">了解完整学习流程</ContextHelpLink></div>
-        <ol className="mt-6 grid gap-3 sm:grid-cols-5">
+        <div className="flex flex-wrap items-start justify-between gap-4"><div><h2 className="text-xl font-bold">你的学习旅程</h2><p className="mt-2 text-sm leading-6 text-muted">基础预学习不是正式 Cycle。完成基线诊断并确认正式开始后，系统才会按 Cycle 组织学习、实践与双月评估。</p></div><ContextHelpLink section="journey">了解完整学习流程</ContextHelpLink></div>
+        <ol className="mt-6 grid gap-3 sm:grid-cols-3 xl:grid-cols-6">
           {journeySteps.map((step, index) => <li key={step} className={`rounded-xl px-4 py-4 ${index === currentStep ? "bg-accent text-white" : index < currentStep ? "bg-accent-soft text-accent-strong" : "bg-soft text-muted"}`}><span className={`grid size-7 place-items-center rounded-full text-xs font-bold ${index === currentStep ? "bg-white text-accent" : "bg-white"}`}>{index < currentStep ? <Check size={15} /> : index + 1}</span><p className="mt-3 text-sm font-bold leading-5">{step}</p></li>)}
         </ol>
-        <p className="mt-5 text-sm leading-6 text-muted"><strong className="text-ink">当前下一步：</strong>{journeyStage === "active" ? formalDue ? "本周期双月正式评估已到期，请进入评估中心。" : `继续 Cycle ${journeyWorkspace.cycle?.cycle_number ?? 1}；下一次正式评估 ${journeyWorkspace.cycle?.assessment_due_on ?? "待安排"}。` : foundationReady ? "基础预学习已完成，可以主动发起基线诊断。" : `继续完成基础概念，目前 ${journeyWorkspace.foundationCompleted}/${journeyWorkspace.foundationTotal || 24}。`}</p>
+        <p className="mt-5 text-sm leading-6 text-muted"><strong className="text-ink">当前下一步：</strong>{nextAction}</p>
       </section>
 
       <section className="mt-5 grid gap-4 lg:grid-cols-[minmax(0,1fr)_360px]">
         <div className="rounded-2xl bg-accent-soft p-6 sm:p-8 lg:min-h-72">
           <p className="text-sm font-bold text-accent-strong">今日建议学习</p>
           <div className="mt-6 flex flex-col justify-between gap-6 lg:h-[188px]">
-            {todayRecommendation ? <>
+            {stageAction ? <div>
+              <h2 className="text-[28px] font-bold leading-tight tracking-[-0.03em]">{stageAction.title}</h2>
+              <p className="mt-3 max-w-xl text-[15px] leading-6 text-muted sm:text-base">{stageAction.description}</p>
+              <Link href={stageAction.href} className="mt-7 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-accent px-6 text-sm font-bold text-white transition-colors hover:bg-accent-strong sm:w-fit">{stageAction.label} <ArrowRight aria-hidden="true" size={19} /></Link>
+            </div> : todayRecommendation ? <>
               <div>
                 <p className="text-[22px] font-medium text-muted sm:text-[25px]">{todayRecommendation.concept.titleEn}</p>
                 <h2 className="mt-1 text-[34px] font-bold leading-tight tracking-[-0.035em] sm:text-[38px]">{todayRecommendation.concept.titleZh}</h2>
@@ -80,7 +119,7 @@ export async function Dashboard() {
               >
                 开始学习 <ArrowRight aria-hidden="true" size={19} />
               </Link>
-            </> : <div><h2 className="text-2xl font-bold">当前没有新的推荐项</h2><p className="mt-3 text-muted">到期内容会出现在 Quiz，或从 Knowledge Map 选择知识点。</p></div>}
+            </> : <div><h2 className="text-2xl font-bold">当前没有新的推荐项</h2><p className="mt-3 text-muted">可以完成到期复习，或从知识地图自由浏览。</p></div>}
           </div>
         </div>
 
