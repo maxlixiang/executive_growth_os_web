@@ -4,6 +4,8 @@ import { ContextHelpLink } from "@/components/context-help-link";
 import { assessmentTabs, FeatureTabs } from "@/components/feature-tabs";
 import { PageContainer, PageHeader } from "@/components/page-header";
 import { capabilityWeights } from "@/features/assessment/readiness";
+import { AssessmentLauncher } from "@/features/assessment/assessment-launcher";
+import { FormalStartForm } from "@/features/journeys/journey-forms";
 import { JourneySummary } from "@/features/journeys/journey-summary";
 import { getJourneyWorkspace } from "@/features/journeys/queries";
 import { getReviewHistory } from "@/features/reviews/queries";
@@ -24,7 +26,7 @@ export default async function AssessmentPage({ searchParams }: { searchParams: P
     return <PageContainer>
       <PageHeader backHref="/" eyebrow="Assessment History" title="评估与复盘" description="集中查看正式评估、自主评估、历次复盘和模拟面试；不同结果不会相互覆盖。" />
       <FeatureTabs tabs={assessmentTabs} active="/assessment?view=history" />
-      <section className="mt-9"><h2 className="text-xl font-bold">评估结果</h2><div className="mt-4 divide-y divide-line border-y border-line">{assessments.data?.length ? assessments.data.map((item) => <article key={item.id} className="py-4"><div className="flex flex-wrap items-center justify-between gap-3"><p className="font-bold">{labels[item.assessment_type] ?? "能力评估"}</p><span className="text-sm font-bold">{item.readiness_score == null ? "尚无分数" : `${item.readiness_score}/100`}</span></div><p className="mt-1 text-sm text-muted">{item.status} · {new Date(item.completed_at ?? item.created_at).toLocaleString("zh-CN")}</p></article>) : <p className="py-6 text-muted">尚无评估结果。</p>}</div></section>
+      <section className="mt-9"><h2 className="text-xl font-bold">评估结果</h2><div className="mt-4 divide-y divide-line border-y border-line">{assessments.data?.length ? assessments.data.map((item) => <Link href={`/assessment/${item.id}`} key={item.id} className="block py-4 hover:text-accent"><div className="flex flex-wrap items-center justify-between gap-3"><p className="font-bold">{labels[item.assessment_type] ?? "能力评估"}</p><span className="text-sm font-bold">{item.readiness_score == null ? "尚无分数" : `${item.readiness_score}/100`}</span></div><p className="mt-1 text-sm text-muted">{item.status} · {new Date(item.completed_at ?? item.created_at).toLocaleString("zh-CN")}</p></Link>) : <p className="py-6 text-muted">尚无评估结果。</p>}</div></section>
       <section className="mt-9"><h2 className="text-xl font-bold">历次复盘</h2><div className="mt-4 divide-y divide-line border-y border-line">{history.monthly.length ? history.monthly.map((item) => <Link key={item.id} href={`/reviews/${item.id}`} className="flex min-h-16 items-center justify-between gap-4 py-3 hover:text-accent"><span><strong>第{item.review_number}次复盘</strong><span className="ml-3 text-sm text-muted">{item.period_start}—{item.period_end}</span></span><ArrowRight size={17} /></Link>) : <p className="py-6 text-muted">尚无复盘结果。</p>}</div></section>
       <section className="mt-9"><h2 className="text-xl font-bold">模拟面试</h2><div className="mt-4 divide-y divide-line border-y border-line">{history.interviews.length ? history.interviews.map((item) => <Link key={item.id} href={`/interviews/${item.id}`} className="flex min-h-16 items-center justify-between gap-4 py-3 hover:text-accent"><span><strong>{item.title}</strong><span className="ml-3 text-sm text-muted">{item.status === "completed" ? "已完成" : "进行中"}</span></span><ArrowRight size={17} /></Link>) : <p className="py-6 text-muted">尚无模拟面试。</p>}</div></section>
     </PageContainer>;
@@ -46,12 +48,15 @@ export default async function AssessmentPage({ searchParams }: { searchParams: P
       <ContextHelpLink section="assessment">了解三类评估、评分和 Cycle 规则</ContextHelpLink>
       <div className="mt-7"><JourneySummary workspace={workspace} /></div>
 
+      {workspace.journey?.mode === "official" && workspace.journey.baseline_completed_on && !workspace.journey.formal_started_on ? <div className="mt-7"><FormalStartForm baselineDate={workspace.journey.baseline_completed_on} /></div> : null}
+      {workspace.journey?.mode === "trial" && workspace.journey.baseline_completed_on ? <section className="mt-7 rounded-2xl border border-amber-200 bg-amber-50 p-5 sm:p-7"><h2 className="text-xl font-bold">试用旅程的基线已完成</h2><p className="mt-2 text-sm leading-6 text-muted">试用旅程不会直接转为正式 Cycle。准备正式学习时，请到设置中重启为“正式旅程”；试用历史会保留，但不会参与新旅程评分。</p><Link href="/settings" className="mt-4 inline-flex min-h-11 items-center gap-2 font-bold text-accent">前往旅程设置 <ArrowRight size={17} /></Link></section> : null}
+
       <section className="mt-8">
         <h2 className="text-xl font-bold">三类评估，各自承担不同职责</h2>
         <div className="mt-5 grid gap-4 lg:grid-cols-3">
-          <AssessmentTypeCard number="1" title="基线诊断" subtitle="预学习后的初始正式评分" available={foundationReady && workspace.journey?.stage !== "active"} status={foundationReady ? "基础概念已完成，可以准备基线诊断。" : `完成 ${workspace.foundationTotal || 24} 项基础概念后解锁，目前 ${workspace.foundationCompleted}/${workspace.foundationTotal || 24}。`} detail="每个学习旅程进行一次。完成后进入正式学习 Cycle 1。" />
-          <AssessmentTypeCard number="2" title="自主评估" subtitle="随时查漏补缺" available={activeLearning} status={activeLearning ? "正式学习中可随时发起，不会结束当前 Cycle。" : "完成基线诊断并进入正式学习后开放。"} detail="更新 AI 对当前能力的估计和教学建议，不覆盖最近正式评分。" />
-          <AssessmentTypeCard number="3" title="双月正式评估" subtitle="Cycle 结束时更新正式评分" available={Boolean(formalDue)} status={!activeLearning ? "进入正式学习后开始计算双月周期。" : formalDue ? "本周期评估已到期。" : `下一次评估：${workspace.cycle?.assessment_due_on ?? "待安排"}`} detail="综合知识、案例与实践证据，结束当前 Cycle 并生成下一 Cycle 建议。" />
+          <AssessmentTypeCard type="baseline" number="1" title="基线诊断" subtitle="预学习后的初始正式评分" available={foundationReady && !workspace.journey?.baseline_completed_on} status={workspace.journey?.baseline_completed_on ? "本旅程的基线诊断已经完成。" : foundationReady ? "基础概念已完成，可以发起基线诊断。" : `完成 ${workspace.foundationTotal || 24} 项基础概念后解锁，目前 ${workspace.foundationCompleted}/${workspace.foundationTotal || 24}。`} detail="每个学习旅程进行一次。正式旅程完成后，由你确认 Cycle 1 的开始日期。" activeSessionId={workspace.activeAssessment?.assessment_type === "baseline" ? workspace.activeAssessment.id : null} />
+          <AssessmentTypeCard type="self_check" number="2" title="自主评估" subtitle="随时查漏补缺" available={activeLearning} status={activeLearning ? "正式学习中可随时发起，不会结束当前 Cycle。" : "完成基线诊断并确认正式学习后开放。"} detail="更新 AI 对当前能力的估计和教学建议，不覆盖最近正式评分。" activeSessionId={workspace.activeAssessment?.assessment_type === "self_check" ? workspace.activeAssessment.id : null} />
+          <AssessmentTypeCard type="formal" number="3" title="双月正式评估" subtitle="Cycle 结束时更新正式评分" available={Boolean(formalDue)} status={!activeLearning ? "进入正式学习后开始计算双月周期。" : formalDue ? "本周期评估已到期。" : `下一次评估：${workspace.cycle?.assessment_due_on ?? "待安排"}`} detail="综合知识、案例与实践证据，结束当前 Cycle 并自动建立下一 Cycle。" activeSessionId={workspace.activeAssessment?.assessment_type === "formal" ? workspace.activeAssessment.id : null} />
         </div>
       </section>
 
@@ -89,8 +94,9 @@ export default async function AssessmentPage({ searchParams }: { searchParams: P
   );
 }
 
-function AssessmentTypeCard({ number, title, subtitle, available, status, detail }: { number: string; title: string; subtitle: string; available: boolean; status: string; detail: string }) {
-  return <article className={`rounded-2xl border p-5 sm:p-6 ${available ? "border-accent bg-white" : "border-line bg-soft/60"}`}><div className="flex items-start justify-between gap-3"><span className={`grid size-9 place-items-center rounded-full text-sm font-bold ${available ? "bg-accent text-white" : "bg-white text-muted"}`}>{number}</span>{available ? <span className="rounded-full bg-accent-soft px-3 py-1 text-xs font-bold text-accent-strong">当前可用</span> : <span className="rounded-full bg-white px-3 py-1 text-xs font-bold text-muted">尚未解锁</span>}</div><p className="mt-5 text-sm font-semibold text-muted">{subtitle}</p><h3 className="mt-1 text-xl font-bold">{title}</h3><p className="mt-3 text-sm leading-6">{status}</p><p className="mt-3 text-sm leading-6 text-muted">{detail}</p><Link href="/help#assessment" className="mt-5 inline-flex min-h-10 items-center gap-2 text-sm font-bold text-accent">查看规则 <ArrowRight size={16} /></Link></article>;
+function AssessmentTypeCard({ type, number, title, subtitle, available, status, detail, activeSessionId }: { type: "baseline" | "self_check" | "formal"; number: string; title: string; subtitle: string; available: boolean; status: string; detail: string; activeSessionId?: string | null }) {
+  const enabled = available || Boolean(activeSessionId);
+  return <article className={`rounded-2xl border p-5 sm:p-6 ${enabled ? "border-accent bg-white" : "border-line bg-soft/60"}`}><div className="flex items-start justify-between gap-3"><span className={`grid size-9 place-items-center rounded-full text-sm font-bold ${enabled ? "bg-accent text-white" : "bg-white text-muted"}`}>{number}</span>{enabled ? <span className="rounded-full bg-accent-soft px-3 py-1 text-xs font-bold text-accent-strong">{activeSessionId ? "进行中" : "当前可用"}</span> : <span className="rounded-full bg-white px-3 py-1 text-xs font-bold text-muted">尚未解锁</span>}</div><p className="mt-5 text-sm font-semibold text-muted">{subtitle}</p><h3 className="mt-1 text-xl font-bold">{title}</h3><p className="mt-3 text-sm leading-6">{status}</p><p className="mt-3 text-sm leading-6 text-muted">{detail}</p><AssessmentLauncher type={type} disabled={!enabled} activeSessionId={activeSessionId} /><Link href="/help#assessment" className="mt-3 inline-flex min-h-10 items-center gap-2 text-sm font-bold text-accent">查看规则 <ArrowRight size={16} /></Link></article>;
 }
 
 function ScoreLine({ label, value }: { label: string; value: number | null | undefined }) {

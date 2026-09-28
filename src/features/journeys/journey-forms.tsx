@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState } from "react";
-import { correctPreparationDate, restartJourney, updateNickname, type JourneyActionState } from "./actions";
+import { confirmFormalLearningStart, correctPreparationDate, restartJourney, startInitialJourney, updateNickname, type JourneyActionState } from "./actions";
 
 const initial: JourneyActionState = { ok: false, message: "" };
 const field = "mt-2 min-h-12 w-full rounded-xl border border-line bg-white px-4";
@@ -13,6 +13,18 @@ function Status({ state }: { state: JourneyActionState }) {
 export function NicknameForm({ nickname, email }: { nickname: string; email: string }) {
   const [state, action, pending] = useActionState(updateNickname, initial);
   return <form action={action} className="rounded-2xl border border-line p-5 sm:p-7"><h2 className="text-xl font-bold">个人称呼</h2><p className="mt-2 text-sm leading-6 text-muted">昵称只用于界面称呼。系统始终以登录账户的内部 ID 识别你，修改昵称不会产生新用户。</p><div className="mt-5 grid gap-4 sm:grid-cols-2"><label className="font-semibold">昵称<input className={field} name="nickname" defaultValue={nickname} required maxLength={40} /></label><label className="font-semibold text-muted">登录邮箱<input className={`${field} bg-soft`} value={email} readOnly /></label></div><Status state={state} /><button disabled={pending} className="mt-5 min-h-12 rounded-xl bg-accent px-6 font-bold text-white disabled:opacity-60">{pending ? "保存中…" : "保存昵称"}</button></form>;
+}
+
+export function InitialJourneyForm() {
+  const [state, action, pending] = useActionState(startInitialJourney, initial);
+  const today = new Date().toISOString().slice(0, 10);
+  return <form action={action} className="rounded-2xl border border-accent bg-white p-5 sm:p-7"><p className="text-sm font-bold text-accent">FIRST JOURNEY</p><h2 className="mt-2 text-2xl font-bold">建立你的第一段学习旅程</h2><p className="mt-2 max-w-3xl text-sm leading-6 text-muted">先选择试用或正式旅程，再确认基础预学习起点。两种旅程都从 24 项基础概念开始；试用数据会保留，但不会自动进入正式评分。</p><div className="mt-6 grid gap-4 sm:grid-cols-2"><label className="font-semibold">旅程类型<select name="mode" defaultValue="trial" className={field}><option value="trial">试用旅程 · 先熟悉产品</option><option value="official">正式旅程 · 完成基线后进入 Cycle 1</option></select></label><label className="font-semibold">基础预学习开始日<input type="date" name="startDate" defaultValue={today} max={today} required className={field} /></label></div><label className="mt-5 block font-semibold">长期目标（可稍后完善）<textarea name="longTermGoal" rows={3} maxLength={2000} className={`${field} py-3`} placeholder="例如：从法务岗位成长为能够独立负责业务单元的管理者" /></label><div className="mt-5 rounded-xl bg-accent-soft p-4 text-sm leading-6 text-accent-strong"><strong>试用旅程：</strong>适合当前产品试用；以后开始正式旅程时，旧数据会归档且不参与新的 AI 判断。<br /><strong>正式旅程：</strong>基础预学习和基线诊断属于准备阶段，完成基线后仍需你再次确认正式开始日期。</div><Status state={state} /><button disabled={pending} className="mt-5 min-h-12 rounded-xl bg-accent px-6 font-bold text-white disabled:opacity-60">{pending ? "正在建立…" : "确认并开始基础预学习"}</button></form>;
+}
+
+export function FormalStartForm({ baselineDate }: { baselineDate: string }) {
+  const [state, action, pending] = useActionState(confirmFormalLearningStart, initial);
+  const today = new Date().toISOString().slice(0, 10);
+  return <form action={action} className="rounded-2xl border border-accent bg-accent-soft p-5 sm:p-7"><p className="text-sm font-bold text-accent">BASELINE COMPLETE</p><h2 className="mt-2 text-2xl font-bold">确认进入正式学习</h2><p className="mt-2 text-sm leading-6 text-muted">基线诊断已建立初始分数。正式开始后将创建 Cycle 1，并以开始日为锚点安排两个月后的正式评估。</p><label className="mt-5 block max-w-sm font-semibold">正式学习开始日<input type="date" name="date" defaultValue={today} min={baselineDate} max={today} required className={field} /></label><Status state={state} /><button disabled={pending} className="mt-5 min-h-12 rounded-xl bg-accent px-6 font-bold text-white disabled:opacity-60">{pending ? "正在开始…" : "确认开始 Cycle 1"}</button></form>;
 }
 
 export function JourneyControls({ mode, startDate, baselineCompleted }: { mode: string; startDate: string; baselineCompleted: boolean }) {

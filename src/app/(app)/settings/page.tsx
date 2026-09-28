@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { PageContainer, PageHeader } from "@/components/page-header";
-import { JourneyControls, NicknameForm } from "@/features/journeys/journey-forms";
+import { InitialJourneyForm, JourneyControls, NicknameForm } from "@/features/journeys/journey-forms";
 import { getJourneyWorkspace } from "@/features/journeys/queries";
 
 export const dynamic = "force-dynamic";
@@ -20,6 +20,6 @@ export default async function SettingsPage() {
       <Link href="/plan" className="mt-5 inline-flex min-h-11 items-center gap-2 rounded-xl bg-accent px-5 text-sm font-bold text-white">前往成长计划 <ArrowRight size={17} /></Link>
     </section>
 
-    {workspace.journey ? <section className="mt-9"><div className="mb-5"><h2 className="text-2xl font-bold">学习旅程与数据</h2><p className="mt-2 max-w-3xl text-sm leading-6 text-muted">更正预学习日期或重启旅程会影响评估时间线与 AI 使用的数据范围，因此保留在设置中。</p></div><JourneyControls mode={workspace.journey.mode} startDate={workspace.journey.preparation_started_on} baselineCompleted={Boolean(workspace.journey.baseline_completed_on)} /></section> : null}
+    {workspace.journey ? <section className="mt-9"><div className="mb-5"><h2 className="text-2xl font-bold">学习旅程与数据</h2><p className="mt-2 max-w-3xl text-sm leading-6 text-muted">更正预学习日期或重启旅程会影响评估时间线与 AI 使用的数据范围，因此保留在设置中。</p></div><JourneyControls mode={workspace.journey.mode} startDate={workspace.journey.preparation_started_on} baselineCompleted={Boolean(workspace.journey.baseline_completed_on)} /></section> : <section className="mt-9"><InitialJourneyForm /></section>}
   </PageContainer>;
 }

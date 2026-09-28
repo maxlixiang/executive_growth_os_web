@@ -18,18 +18,22 @@ export const getJourneyWorkspace = cache(async () => {
   let latestAssessment = null;
   let latestSelfAssessment = null;
   let currentEstimate = null;
+  let activeAssessment = null;
   if (journey) {
-    const [cycleResult, assessmentResult] = await Promise.all([
+    const [cycleResult, assessmentResult, activeAssessmentResult] = await Promise.all([
       supabase.from("learning_cycles").select("*").eq("journey_id", journey.id).eq("status", "current").maybeSingle(),
       supabase.from("assessment_sessions").select("*").eq("journey_id", journey.id).eq("status", "completed").order("completed_at", { ascending: false }).limit(20),
+      supabase.from("assessment_sessions").select("id, assessment_type, started_at").eq("journey_id", journey.id).eq("status", "in_progress").maybeSingle(),
     ]);
     if (cycleResult.error) throw new Error(cycleResult.error.message);
     if (assessmentResult.error) throw new Error(assessmentResult.error.message);
+    if (activeAssessmentResult.error) throw new Error(activeAssessmentResult.error.message);
     cycle = cycleResult.data;
     const assessments = assessmentResult.data ?? [];
     latestAssessment = assessments.find((item) => item.assessment_type !== "self_check") ?? null;
     latestSelfAssessment = assessments.find((item) => item.assessment_type === "self_check") ?? null;
     currentEstimate = assessments[0] ?? null;
+    activeAssessment = activeAssessmentResult.data;
   }
 
   const capabilities = capabilitiesResult.data ?? [];
@@ -48,9 +52,10 @@ export const getJourneyWorkspace = cache(async () => {
 
   return {
     user: { id: user.id, email: user.email ?? "" }, profile: profileResult.data, journey,
-    journeys: journeysResult.data ?? [], cycle, latestAssessment, latestSelfAssessment, currentEstimate, capabilities, foundation,
+    journeys: journeysResult.data ?? [], cycle, latestAssessment, latestSelfAssessment, currentEstimate, activeAssessment, capabilities, foundation,
     foundationCompleted: foundation.filter((item) => learned.has(item.id)).length,
     foundationTotal: foundation.length,
+    nextFoundation: foundation.find((item) => !learned.has(item.id)) ?? null,
   };
 });
 

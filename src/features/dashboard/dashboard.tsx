@@ -7,18 +7,23 @@ import { getQuizQueue, getRecommendation } from "@/features/knowledge/queries";
 import { requireUser } from "@/lib/auth/require-user";
 import { JourneySummary } from "@/features/journeys/journey-summary";
 import { getJourneyWorkspace } from "@/features/journeys/queries";
+import { InitialJourneyForm } from "@/features/journeys/journey-forms";
 
 function formatDate(value: string | Date, timezone: string, options: Intl.DateTimeFormatOptions) {
   return new Intl.DateTimeFormat("zh-CN", { timeZone: timezone, ...options }).format(new Date(value));
 }
 
 export async function Dashboard() {
-  const [{ workspace, recommendation }, { due }, { supabase, user }, growthPlan, journeyWorkspace] = await Promise.all([
+  const journeyWorkspace = await getJourneyWorkspace();
+  if (!journeyWorkspace.journey) {
+    const displayName = journeyWorkspace.profile?.display_name || journeyWorkspace.user.email.split("@")[0] || "Executive";
+    return <main className="mx-auto w-full max-w-[1220px] px-5 py-6 sm:px-8 lg:px-12 lg:py-10"><header><p className="text-sm font-semibold text-ink lg:hidden">Executive Growth OS</p><h1 className="mt-9 text-[36px] font-bold leading-none tracking-[-0.045em] sm:text-[42px] lg:mt-0 lg:text-[46px]">你好，{displayName}</h1><p className="mt-3 text-[17px] text-muted">先建立学习旅程，系统才能隔离并理解你的学习数据。</p></header><div className="mt-8"><InitialJourneyForm /></div></main>;
+  }
+  const [{ workspace, recommendation }, { due }, { supabase, user }, growthPlan] = await Promise.all([
     getRecommendation(),
     getQuizQueue(),
     requireUser(),
     getGrowthPlanWorkspace(),
-    getJourneyWorkspace(),
   ]);
   const { data: profile } = await supabase.from("profiles").select("display_name, timezone").eq("id", user.id).maybeSingle();
   const timezone = profile?.timezone ?? "Asia/Shanghai";
@@ -32,6 +37,8 @@ export async function Dashboard() {
   const formalDue = journeyStage === "active" && Boolean(journeyWorkspace.cycle?.assessment_due_on) && journeyWorkspace.cycle!.assessment_due_on <= new Date().toISOString().slice(0, 10);
   const currentStep = journeyStage === "active" ? (formalDue ? 3 : 2) : foundationReady ? 1 : 0;
   const journeySteps = ["基础预学习", "基线诊断", `正式学习 Cycle ${journeyWorkspace.cycle?.cycle_number ?? 1}`, "双月正式评估", "进入下一 Cycle"];
+  const foundationRecommendation = journeyWorkspace.nextFoundation ? workspace.concepts.find((item) => item.id === journeyWorkspace.nextFoundation?.id) : null;
+  const todayRecommendation = journeyStage === "active" ? recommendation : foundationRecommendation ? { concept: foundationRecommendation, reasons: ["基础预学习阶段按六项能力各 4 个核心概念推进；完成 24 项后才开放基线诊断。"] } : recommendation;
 
   return (
     <main className="mx-auto w-full max-w-[1220px] px-5 py-6 sm:px-8 lg:px-12 lg:py-10">
@@ -61,14 +68,14 @@ export async function Dashboard() {
         <div className="rounded-2xl bg-accent-soft p-6 sm:p-8 lg:min-h-72">
           <p className="text-sm font-bold text-accent-strong">今日建议学习</p>
           <div className="mt-6 flex flex-col justify-between gap-6 lg:h-[188px]">
-            {recommendation ? <>
+            {todayRecommendation ? <>
               <div>
-                <p className="text-[22px] font-medium text-muted sm:text-[25px]">{recommendation.concept.titleEn}</p>
-                <h2 className="mt-1 text-[34px] font-bold leading-tight tracking-[-0.035em] sm:text-[38px]">{recommendation.concept.titleZh}</h2>
-                <p className="mt-3 max-w-xl text-[15px] leading-6 text-muted sm:text-base">{recommendation.reasons[0]}</p>
+                <p className="text-[22px] font-medium text-muted sm:text-[25px]">{todayRecommendation.concept.titleEn}</p>
+                <h2 className="mt-1 text-[34px] font-bold leading-tight tracking-[-0.035em] sm:text-[38px]">{todayRecommendation.concept.titleZh}</h2>
+                <p className="mt-3 max-w-xl text-[15px] leading-6 text-muted sm:text-base">{todayRecommendation.reasons[0]}</p>
               </div>
               <Link
-                href={`/study/${recommendation.concept.capability.toLocaleLowerCase()}/${recommendation.concept.code}`}
+                href={`/study/${todayRecommendation.concept.capability.toLocaleLowerCase()}/${todayRecommendation.concept.code}`}
                 className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-accent px-6 text-sm font-bold text-white transition-colors hover:bg-accent-strong sm:w-fit"
               >
                 开始学习 <ArrowRight aria-hidden="true" size={19} />

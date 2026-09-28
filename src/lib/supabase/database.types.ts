@@ -104,6 +104,7 @@ export type Database = {
       }
       assessment_sessions: {
         Row: {
+          answer_set: Json
           assessment_type: string
           completed_at: string | null
           confidence_score: number | null
@@ -112,6 +113,9 @@ export type Database = {
           id: string
           journey_id: string
           readiness_score: number | null
+          question_set: Json
+          readiness_gates: Json
+          result_summary: string | null
           scoring_version: number
           started_at: string | null
           status: string
@@ -119,6 +123,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          answer_set?: Json
           assessment_type: string
           completed_at?: string | null
           confidence_score?: number | null
@@ -127,6 +132,9 @@ export type Database = {
           id?: string
           journey_id: string
           readiness_score?: number | null
+          question_set?: Json
+          readiness_gates?: Json
+          result_summary?: string | null
           scoring_version?: number
           started_at?: string | null
           status?: string
@@ -134,6 +142,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          answer_set?: Json
           assessment_type?: string
           completed_at?: string | null
           confidence_score?: number | null
@@ -142,6 +151,9 @@ export type Database = {
           id?: string
           journey_id?: string
           readiness_score?: number | null
+          question_set?: Json
+          readiness_gates?: Json
+          result_summary?: string | null
           scoring_version?: number
           started_at?: string | null
           status?: string
@@ -1394,6 +1406,16 @@ export type Database = {
         Args: { p_date: string }
         Returns: Database["public"]["Tables"]["learning_cycles"]["Row"]
       }
+      complete_assessment_session: {
+        Args: {
+          p_answer_set: Json
+          p_confidence_score: number
+          p_result_summary: string
+          p_scores: Json
+          p_session_id: string
+        }
+        Returns: Database["public"]["Tables"]["assessment_sessions"]["Row"]
+      }
       correct_journey_preparation_date: {
         Args: { p_date: string; p_reason: string }
         Returns: Database["public"]["Tables"]["learning_journeys"]["Row"]
@@ -1460,6 +1482,14 @@ export type Database = {
           p_preparation_started_on: string
           p_reason: string
         }
+        Returns: Database["public"]["Tables"]["learning_journeys"]["Row"]
+      }
+      start_assessment_session: {
+        Args: { p_assessment_type: string; p_question_set: Json }
+        Returns: Database["public"]["Tables"]["assessment_sessions"]["Row"]
+      }
+      start_initial_learning_journey: {
+        Args: { p_long_term_goal: string; p_mode: string; p_preparation_started_on: string }
         Returns: Database["public"]["Tables"]["learning_journeys"]["Row"]
       }
       set_study_session_validity: {

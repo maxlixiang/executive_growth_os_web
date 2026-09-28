@@ -12,6 +12,42 @@ function refreshJourneyViews() {
   for (const path of ["/", "/plan", "/settings", "/assessment", "/history"]) revalidatePath(path);
 }
 
+const startSchema = z.object({
+  mode: z.enum(["trial", "official"]),
+  startDate: z.iso.date(),
+  longTermGoal: z.string().trim().max(2000),
+});
+
+export async function startInitialJourney(_previous: JourneyActionState, formData: FormData): Promise<JourneyActionState> {
+  const parsed = startSchema.safeParse({ mode: formData.get("mode"), startDate: formData.get("startDate"), longTermGoal: formData.get("longTermGoal") ?? "" });
+  if (!parsed.success) return { ok: false, message: parsed.error.issues[0]?.message ?? "旅程信息不完整。" };
+  try {
+    const { supabase } = await requireUser();
+    const { error } = await supabase.rpc("start_initial_learning_journey", { p_mode: parsed.data.mode, p_preparation_started_on: parsed.data.startDate, p_long_term_goal: parsed.data.longTermGoal });
+    if (error) throw error;
+    refreshJourneyViews();
+    return { ok: true, message: parsed.data.mode === "trial" ? "试用旅程已建立。试用数据不会自动带入正式旅程。" : "正式旅程的基础预学习已开始。" };
+  } catch (error) {
+    console.error("Initial journey start failed", error);
+    return { ok: false, message: "旅程未能建立，请确认日期后重试。" };
+  }
+}
+
+export async function confirmFormalLearningStart(_previous: JourneyActionState, formData: FormData): Promise<JourneyActionState> {
+  const parsed = z.iso.date().safeParse(formData.get("date"));
+  if (!parsed.success) return { ok: false, message: "请选择正式学习开始日期。" };
+  try {
+    const { supabase } = await requireUser();
+    const { error } = await supabase.rpc("confirm_formal_learning_start", { p_date: parsed.data });
+    if (error) throw error;
+    refreshJourneyViews();
+    return { ok: true, message: "正式学习 Cycle 1 已开始，双月评估日期已建立。" };
+  } catch (error) {
+    console.error("Formal learning start failed", error);
+    return { ok: false, message: "正式学习尚未开始。请确认已完成正式旅程的基线诊断，且日期不早于诊断完成日。" };
+  }
+}
+
 export async function updateNickname(_previous: JourneyActionState, formData: FormData): Promise<JourneyActionState> {
   const nickname = nicknameSchema.safeParse(formData.get("nickname"));
   if (!nickname.success) return { ok: false, message: nickname.error.issues[0]?.message ?? "昵称无效。" };
