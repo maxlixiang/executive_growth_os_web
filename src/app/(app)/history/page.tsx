@@ -4,6 +4,7 @@ import { ContextHelpLink } from "@/components/context-help-link";
 import { PageContainer, PageHeader } from "@/components/page-header";
 import { getJourneyWorkspace } from "@/features/journeys/queries";
 import { getStudyHistory } from "@/features/knowledge/queries";
+import { isRedundantAssessmentLifecycleEvent } from "@/features/history/presentation";
 import { requireUser } from "@/lib/auth/require-user";
 
 export const dynamic = "force-dynamic";
@@ -46,18 +47,21 @@ export default async function HistoryPage({ searchParams }: { searchParams: Prom
     query,
     supabase.from("capture_entries").select("id, journey_id, title, entry_type, content, analysis_status, created_at").eq("user_id", user.id).order("created_at", { ascending: false }).limit(100),
     supabase.from("practice_evidence").select("id, journey_id, evidence_level, review_status, context, created_at").eq("user_id", user.id).order("created_at", { ascending: false }).limit(100),
-    supabase.from("assessment_sessions").select("id, journey_id, assessment_type, status, readiness_score, completed_at, created_at").eq("user_id", user.id).order("created_at", { ascending: false }).limit(100),
+    supabase.from("assessment_sessions").select("id, journey_id, assessment_type, status, readiness_score, confidence_score, completed_at, created_at").eq("user_id", user.id).order("created_at", { ascending: false }).limit(100),
   ]);
   for (const result of [eventsResult, capturesResult, evidenceResult, assessmentsResult]) if (result.error) throw new Error(result.error.message);
   const journeyById = new Map(workspace.journeys.map((item) => [item.id, item]));
   const inScope = (journeyId: string | null) => scope === "all" || !workspace.journey || journeyId === workspace.journey.id;
   const assessmentLabels: Record<string, string> = { baseline: "基线诊断", self_check: "自主评估", formal: "双月正式评估" };
   const items: HistoryItem[] = [
-    ...(eventsResult.data ?? []).map((event) => ({ id: `event-${event.id}`, journeyId: event.journey_id, category: classifyHistoryEvent(event), title: event.title, summary: event.summary, occurredAt: event.occurred_at })),
+    ...(eventsResult.data ?? []).filter((event) => !isRedundantAssessmentLifecycleEvent(event)).map((event) => ({ id: `event-${event.id}`, journeyId: event.journey_id, category: classifyHistoryEvent(event), title: event.title, summary: event.summary, occurredAt: event.occurred_at })),
     ...studyHistory.map(({ session, concept }) => ({ id: `study-${session.id}`, journeyId: session.journey_id, category: "learning" as const, title: `${session.session_type === "quiz" ? "完成复习" : "完成学习"} · ${concept?.title_en ?? "Knowledge"} · ${concept?.title_zh ?? "知识点"}`, summary: session.is_valid ? `概念 ${session.concept_score}/3 · 应用 ${session.application_score}/3` : "该学习记录已作废，不参与进度。", occurredAt: session.committed_at, href: `/study/history/${session.id}` })),
     ...(capturesResult.data ?? []).map((entry) => ({ id: `capture-${entry.id}`, journeyId: entry.journey_id, category: "records" as const, title: entry.title || (entry.entry_type === "work_event" ? "工作事件" : "工作记录"), summary: `${entry.content.slice(0, 180)}${entry.content.length > 180 ? "…" : ""}`, occurredAt: entry.created_at, href: "/capture" })),
     ...(evidenceResult.data ?? []).map((evidence) => ({ id: `evidence-${evidence.id}`, journeyId: evidence.journey_id, category: "evidence" as const, title: `实践证据 · ${evidence.evidence_level} · ${evidence.review_status === "confirmed" ? "已确认" : evidence.review_status === "needs_more" ? "需补充" : evidence.review_status === "invalidated" ? "已失效" : "AI 候选"}`, summary: evidence.context, occurredAt: evidence.created_at, href: "/capture?view=analysis#evidence" })),
-    ...(assessmentsResult.data ?? []).map((assessment) => ({ id: `assessment-${assessment.id}`, journeyId: assessment.journey_id, category: "assessment" as const, title: assessmentLabels[assessment.assessment_type] ?? "能力评估", summary: assessment.status === "completed" ? `正式结果：${assessment.readiness_score ?? "待生成"}/100` : `状态：${assessment.status}`, occurredAt: assessment.completed_at ?? assessment.created_at, href: "/assessment" })),
+    ...(assessmentsResult.data ?? []).map((assessment) => {
+      const label = assessmentLabels[assessment.assessment_type] ?? "能力评估";
+      return { id: `assessment-${assessment.id}`, journeyId: assessment.journey_id, category: "assessment" as const, title: assessment.status === "completed" ? `完成${label}` : `进行中的${label}`, summary: assessment.status === "completed" ? `综合评分 ${assessment.readiness_score ?? "待生成"}/100${assessment.confidence_score == null ? "" : ` · 置信度 ${assessment.confidence_score}%`}` : "评估已经开始，尚未提交最终结果。", occurredAt: assessment.completed_at ?? assessment.created_at, href: "/assessment" };
+    }),
   ].filter((item) => inScope(item.journeyId)).toSorted((left, right) => Date.parse(right.occurredAt) - Date.parse(left.occurredAt));
   const visibleEvents = items.filter((item) => category === "all" || item.category === category);
 

@@ -13,6 +13,8 @@ import { requireUser } from "@/lib/auth/require-user";
 
 export const dynamic = "force-dynamic";
 
+type JourneyWorkspace = Awaited<ReturnType<typeof getJourneyWorkspace>>;
+
 export default async function AssessmentPage({ searchParams }: { searchParams: Promise<{ view?: string }> }) {
   const view = (await searchParams).view === "history" ? "history" : "current";
   const workspace = await getJourneyWorkspace();
@@ -63,28 +65,14 @@ export default async function AssessmentPage({ searchParams }: { searchParams: P
       <section className="mt-8 rounded-2xl bg-accent-soft p-5 sm:p-7">
         <div className="flex flex-wrap items-start justify-between gap-5"><div><p className="text-sm font-bold text-accent">两种分数</p><h2 className="mt-1 text-xl font-bold">动态估计与正式评分分开保存</h2><p className="mt-2 max-w-3xl text-sm leading-6 text-muted">自主评估可以改变“当前能力估计”；只有基线诊断和双月正式评估会更新“最近正式评分”。每一次结果都进入历史，不会静默覆盖。</p></div><div className="grid min-w-52 gap-2"><ScoreLine label="当前能力估计" value={workspace.currentEstimate?.readiness_score} /><ScoreLine label="最近正式评分" value={workspace.latestAssessment?.readiness_score} /></div></div>
       </section>
-      <section className="mt-8">
+      {workspace.journey?.baseline_completed_on ? <details className="mt-8 rounded-2xl border border-line bg-white p-5 sm:p-7">
+        <summary className="cursor-pointer list-none"><span className="flex flex-wrap items-center justify-between gap-3"><span><span className="block text-sm font-bold text-accent">BASELINE COMPLETE</span><span className="mt-1 block text-xl font-bold">查看基线学习详情</span></span><span className="rounded-full bg-accent-soft px-3 py-1 text-sm font-bold text-accent-strong">24 / 24</span></span><span className="mt-2 block text-sm leading-6 text-muted">基线诊断已经完成。需要回顾时再展开六项能力的24个基础概念。</span></summary>
+        <FoundationConceptGrid capabilities={workspace.capabilities} byCapability={byCapability} />
+      </details> : <section className="mt-8">
         <h2 className="text-xl font-bold">基线诊断准备 · 24 项基础概念</h2>
         <p className="mt-2 text-sm leading-6 text-muted">每项能力先学习 4 个基础概念。完成后由你主动发起基线诊断，基线结果不会与正式周期混在一起。</p>
-        <div className="mt-5 grid gap-4 sm:grid-cols-2">
-          {workspace.capabilities.map((capability) => (
-            <article key={capability.id} className="rounded-2xl bg-soft p-5">
-              <div className="flex items-center justify-between gap-3">
-                <h3 className="font-bold">{capability.title_en} · {capability.title_zh}</h3>
-                <span className="shrink-0 text-xs font-bold text-muted">权重 {capabilityWeights[capability.code as keyof typeof capabilityWeights] ?? 0}%</span>
-              </div>
-              <ul className="mt-4 space-y-2">
-                {(byCapability.get(capability.id) ?? []).map((concept) => (
-                  <li key={concept.id} className="flex items-center gap-2 text-sm">
-                    <Circle size={14} className="text-muted" />
-                    <Link className="hover:text-accent" href={`/study/${capability.code}/${concept.concept_code}`}>{concept.title_en} · {concept.title_zh}</Link>
-                  </li>
-                ))}
-              </ul>
-            </article>
-          ))}
-        </div>
-      </section>
+        <FoundationConceptGrid capabilities={workspace.capabilities} byCapability={byCapability} />
+      </section>}
       <section className="mt-8 rounded-2xl border border-line p-5 sm:p-7">
         <div className="flex items-start gap-3"><ShieldCheck className="mt-1 shrink-0 text-accent" /><div><h2 className="text-xl font-bold">100 分代表什么</h2><p className="mt-2 leading-7 text-muted">每项能力由知识 30 分、案例分析 30 分、实践证据 40 分组成，再按六项能力权重汇总。70 分是“具备岗位准备度”的参考门槛，不要求追求满分。</p></div></div>
         <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">{["总分 ≥ 70", "每项能力 ≥ 55", "每项知识 ≥ 18/30", "每项实践 ≥ 16/40"].map((item) => <div key={item} className="flex items-center gap-2 rounded-xl bg-soft px-4 py-3 text-sm font-bold"><CheckCircle2 size={17} className="text-accent" />{item}</div>)}</div>
@@ -101,4 +89,25 @@ function AssessmentTypeCard({ type, number, title, subtitle, available, status, 
 
 function ScoreLine({ label, value }: { label: string; value: number | null | undefined }) {
   return <div className="flex items-center justify-between gap-4 rounded-xl bg-white px-4 py-3"><span className="flex items-center gap-2 text-sm font-semibold text-muted">{label === "当前能力估计" ? <Gauge size={17} /> : <Clock3 size={17} />}{label}</span><strong>{value == null ? "尚未评估" : `${value}/100`}</strong></div>;
+}
+
+function FoundationConceptGrid({ capabilities, byCapability }: { capabilities: JourneyWorkspace["capabilities"]; byCapability: Map<string, JourneyWorkspace["foundation"]> }) {
+  return <div className="mt-5 grid gap-4 sm:grid-cols-2">
+    {capabilities.map((capability) => (
+      <article key={capability.id} className="rounded-2xl bg-soft p-5">
+        <div className="flex items-center justify-between gap-3">
+          <h3 className="font-bold">{capability.title_en} · {capability.title_zh}</h3>
+          <span className="shrink-0 text-xs font-bold text-muted">权重 {capabilityWeights[capability.code as keyof typeof capabilityWeights] ?? 0}%</span>
+        </div>
+        <ul className="mt-4 space-y-2">
+          {(byCapability.get(capability.id) ?? []).map((concept) => (
+            <li key={concept.id} className="flex items-center gap-2 text-sm">
+              <Circle size={14} className="text-muted" />
+              <Link className="hover:text-accent" href={`/study/${capability.code}/${concept.concept_code}`}>{concept.title_en} · {concept.title_zh}</Link>
+            </li>
+          ))}
+        </ul>
+      </article>
+    ))}
+  </div>;
 }
