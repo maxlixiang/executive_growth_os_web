@@ -9,7 +9,7 @@ export async function getGrowthPlanWorkspace() {
   const { data: journey, error: journeyError } = await supabase.from("learning_journeys").select("id").eq("user_id", user.id).eq("status", "active").maybeSingle();
   if (journeyError || !journey) throw new Error(journeyError?.message ?? "Active learning journey required");
   const journeyId = journey.id;
-  const [state, plans, focuses, capabilities, sessions, reflections, evidence, gaps, monthly, quarterly] = await Promise.all([
+  const [state, plans, focuses, capabilities, sessions, reflections, evidence, gaps, flexibleReviews, formalAssessments] = await Promise.all([
     supabase.from("user_growth_state").select("overall_goal, summary, recent_training_direction").eq("user_id", user.id).maybeSingle(),
     supabase.from("growth_plans").select("*").eq("user_id", user.id).filter("journey_id", "eq", journeyId).order("version", { ascending: false }).limit(20),
     supabase.from("user_focuses").select("priority, starts_at, capabilities(code, title_en, title_zh)").eq("user_id", user.id).eq("is_active", true).order("priority"),
@@ -19,9 +19,9 @@ export async function getGrowthPlanWorkspace() {
     supabase.from("practice_evidence").select("capability_id, evidence_level").eq("user_id", user.id).filter("journey_id", "eq", journeyId).eq("review_status", "confirmed"),
     supabase.from("growth_gaps").select("capability_id, gap_type").eq("user_id", user.id).filter("journey_id", "eq", journeyId).eq("status", "open"),
     supabase.from("monthly_reviews").select("id").eq("user_id", user.id).filter("journey_id", "eq", journeyId),
-    supabase.from("quarterly_reviews").select("id").eq("user_id", user.id).filter("journey_id", "eq", journeyId).eq("status", "completed"),
+    supabase.from("assessment_sessions").select("id").eq("user_id", user.id).eq("journey_id", journeyId).eq("status", "completed").in("assessment_type", ["baseline", "bimonthly"]),
   ]);
-  const failed = [state, plans, focuses, capabilities, sessions, reflections, evidence, gaps, monthly, quarterly].find((result) => result.error);
+  const failed = [state, plans, focuses, capabilities, sessions, reflections, evidence, gaps, flexibleReviews, formalAssessments].find((result) => result.error);
   if (failed?.error) throw new Error(failed.error.message);
 
   const studiedCapabilities = new Set((sessions.data ?? []).flatMap((item) => item.knowledge_concepts?.capability_id ? [item.knowledge_concepts.capability_id] : [])).size;
@@ -33,8 +33,8 @@ export async function getGrowthPlanWorkspace() {
     analyzedReflections: reflections.data?.length ?? 0,
     practiceEvidence: evidence.data?.length ?? 0,
     evidencedCapabilities,
-    monthlyReviews: monthly.data?.length ?? 0,
-    completedQuarterlyReviews: quarterly.data?.length ?? 0,
+    flexibleReviews: flexibleReviews.data?.length ?? 0,
+    completedFormalAssessments: formalAssessments.data?.length ?? 0,
   });
   const capabilitySignals = (capabilities.data ?? []).map((capability) => {
     const capabilityEvidence = (evidence.data ?? []).filter((item) => item.capability_id === capability.id);
@@ -60,8 +60,8 @@ export async function getGrowthPlanWorkspace() {
     planningSignals: {
       capability_signals: capabilitySignals,
       total_analyzed_reflections: reflections.data?.length ?? 0,
-      monthly_reviews: monthly.data?.length ?? 0,
-      completed_quarterly_reviews: quarterly.data?.length ?? 0,
+      flexible_reviews: flexibleReviews.data?.length ?? 0,
+      completed_formal_assessments: formalAssessments.data?.length ?? 0,
     },
   };
 }

@@ -5,8 +5,8 @@ export type ConfidenceInputs = {
   analyzedReflections: number;
   practiceEvidence: number;
   evidencedCapabilities: number;
-  monthlyReviews: number;
-  completedQuarterlyReviews: number;
+  flexibleReviews: number;
+  completedFormalAssessments: number;
 };
 
 export type ConfidenceFactor = {
@@ -39,8 +39,8 @@ export function calculateDiagnosticConfidence(input: ConfidenceInputs): Diagnost
     { key: "analyzedReflections", label: "工作复盘", points: capped(input.analyzedReflections, 2, 10), maximum: 10, detail: `${input.analyzedReflections} 条已分析工作记录。` },
     { key: "practiceEvidence", label: "实践证据", points: capped(input.practiceEvidence, 2, 10), maximum: 10, detail: `${input.practiceEvidence} 条实践证据。` },
     { key: "evidencedCapabilities", label: "证据覆盖", points: capped(input.evidencedCapabilities, 2.5, 15), maximum: 15, detail: `证据覆盖 ${input.evidencedCapabilities}/6 项能力。` },
-    { key: "monthlyReviews", label: "自主复盘", points: capped(input.monthlyReviews, 5, 5), maximum: 5, detail: `${input.monthlyReviews} 次已完成自主复盘。` },
-    { key: "completedQuarterlyReviews", label: "正式评估", points: capped(input.completedQuarterlyReviews, 10, 10), maximum: 10, detail: `${input.completedQuarterlyReviews} 次完整正式评估。` },
+    { key: "flexibleReviews", label: "自主复盘", points: capped(input.flexibleReviews, 5, 5), maximum: 5, detail: `${input.flexibleReviews} 次已完成自主复盘。` },
+    { key: "completedFormalAssessments", label: "正式评估", points: capped(input.completedFormalAssessments, 10, 10), maximum: 10, detail: `${input.completedFormalAssessments} 次基线或双月正式评估。` },
   ];
   const score = Math.min(100, factors.reduce((total, factor) => total + factor.points, 0));
   const level = score < 40 ? "low" : score < 70 ? "medium" : "high";

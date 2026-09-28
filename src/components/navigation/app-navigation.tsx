@@ -34,8 +34,8 @@ export function DesktopNavigation({ displayName }: { displayName: string }) {
               }`}
             >
               <Icon aria-hidden="true" size={20} strokeWidth={1.75} />
-              <span>{item.label}</span>
-              <span className="text-muted">{item.secondary}</span>
+              <span className="shrink-0 whitespace-nowrap">{item.label}</span>
+              <span className="min-w-0 truncate whitespace-nowrap text-muted">{item.secondary}</span>
             </Link>
           );
         })}

@@ -10,8 +10,8 @@ describe("calculateDiagnosticConfidence", () => {
       analyzedReflections: 0,
       practiceEvidence: 0,
       evidencedCapabilities: 0,
-      monthlyReviews: 0,
-      completedQuarterlyReviews: 0,
+      flexibleReviews: 0,
+      completedFormalAssessments: 0,
     });
     expect(result.score).toBe(20);
     expect(result.level).toBe("low");
@@ -25,8 +25,8 @@ describe("calculateDiagnosticConfidence", () => {
       analyzedReflections: 5,
       practiceEvidence: 5,
       evidencedCapabilities: 4,
-      monthlyReviews: 1,
-      completedQuarterlyReviews: 1,
+      flexibleReviews: 1,
+      completedFormalAssessments: 1,
     });
     expect(result.score).toBe(90);
     expect(result.level).toBe("high");
@@ -40,8 +40,8 @@ describe("calculateDiagnosticConfidence", () => {
       analyzedReflections: 999,
       practiceEvidence: 999,
       evidencedCapabilities: 99,
-      monthlyReviews: 99,
-      completedQuarterlyReviews: 99,
+      flexibleReviews: 99,
+      completedFormalAssessments: 99,
     });
     expect(result.score).toBe(100);
   });

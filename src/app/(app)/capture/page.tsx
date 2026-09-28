@@ -27,14 +27,16 @@ export default async function CapturePage({ searchParams }: { searchParams: Prom
     <FeatureTabs tabs={recordTabs} active={view === "analysis" ? "/capture?view=analysis" : "/capture"} />
 
     {view === "capture" ? <>
-      <section className="mt-7 rounded-2xl bg-soft px-5 py-5 sm:px-6">
-        <h2 className="font-bold">让 AI 更准确地理解这条记录</h2>
-        <p className="mt-2 text-sm leading-6 text-muted">尽量包含以下真实信息；暂时没有结果时，直接写“待验证”即可。</p>
-        <ul className="mt-4 grid gap-2 text-sm sm:grid-cols-2 lg:grid-cols-4">
-          {["背景与事件", "你的角色", "行动与判断", "参与人员", "取舍与依据", "结果或数字", "限制与风险", "尚未确定之处"].map((item) => <li key={item} className="flex items-center gap-2"><CheckCircle2 className="shrink-0 text-accent" size={16} />{item}</li>)}
-        </ul>
-        <ContextHelpLink section="records">查看高质量记录指南</ContextHelpLink>
-      </section>
+      <details className="group mt-7 rounded-2xl bg-soft px-5 py-4 sm:px-6">
+        <summary className="flex cursor-pointer list-none items-center justify-between gap-4 font-bold marker:content-none"><span>填写提示：背景、角色、判断、行动与结果</span><span className="shrink-0 text-sm text-accent group-open:hidden">展开</span><span className="hidden shrink-0 text-sm text-accent group-open:inline">收起</span></summary>
+        <div className="mt-4 border-t border-line pt-4">
+          <p className="text-sm leading-6 text-muted">尽量包含以下真实信息；暂时没有结果时，直接写“待验证”即可。</p>
+          <ul className="mt-4 grid gap-2 text-sm sm:grid-cols-2 lg:grid-cols-4">
+            {["背景与事件", "你的角色", "行动与判断", "参与人员", "取舍与依据", "结果或数字", "限制与风险", "尚未确定之处"].map((item) => <li key={item} className="flex items-center gap-2"><CheckCircle2 className="shrink-0 text-accent" size={16} />{item}</li>)}
+          </ul>
+          <ContextHelpLink section="records">查看高质量记录指南</ContextHelpLink>
+        </div>
+      </details>
       <CaptureForm />
       <section className="mt-10">
         <div className="flex flex-wrap items-center justify-between gap-4"><div><h2 className="text-xl font-bold">最近记录</h2><p className="mt-1 text-sm text-muted">AI 只分析你明确选择的记录，不会因为分析新记录而自动读取此前仅保存的内容。</p></div>{pendingEntries.length ? <form action={analyzePendingCaptures}><button className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-accent px-4 text-sm font-bold text-accent hover:bg-accent-soft"><Sparkles size={17} />{pendingEntries.length > 20 ? `分析下一批（20/${pendingEntries.length}）` : `分析全部待处理记录（${pendingEntries.length}）`}</button></form> : null}</div>

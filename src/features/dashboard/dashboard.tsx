@@ -5,7 +5,6 @@ import { GrowthPlanSummary } from "@/features/growth/growth-plan-summary";
 import { getGrowthPlanWorkspace } from "@/features/growth/queries";
 import { getQuizQueue, getRecommendation } from "@/features/knowledge/queries";
 import { requireUser } from "@/lib/auth/require-user";
-import { JourneySummary } from "@/features/journeys/journey-summary";
 import { getJourneyWorkspace } from "@/features/journeys/queries";
 import { InitialJourneyForm } from "@/features/journeys/journey-forms";
 import { getJourneyPhase, journeyPhaseStep } from "@/features/journeys/presentation";
@@ -73,7 +72,21 @@ export async function Dashboard() {
     ? { href: "/settings", label: "建立正式旅程", title: "试用基线已完成", description: "试用旅程不会自动转为正式学习。确认准备好后，归档试用旅程并从新的正式旅程开始。" }
     : journeyPhase === "baseline" || journeyPhase === "formal_confirmation"
       ? { href: "/assessment", label: journeyPhase === "baseline" ? "开始基线诊断" : "确认正式开始", title: journeyPhase === "baseline" ? "准备进行基线诊断" : "基线诊断已经完成", description: journeyPhase === "baseline" ? "完成诊断后，AI 才会生成可审计的初始评分。" : "确认正式学习起始日后，系统会建立 Cycle 1 和双月评估日期。" }
-      : null;
+      : journeyPhase === "formal_assessment"
+        ? { href: "/assessment", label: "开始正式评估", title: "双月正式评估已经到期", description: "完成评估后，系统会更新正式评分并建立下一 Cycle。" }
+        : null;
+  const phaseLabel = journeyPhase === "foundation" ? "基础预学习"
+    : journeyPhase === "baseline" ? "基线诊断"
+      : journeyPhase === "formal_confirmation" ? "正式开始确认"
+        : journeyPhase === "trial_complete" ? "试用旅程完成"
+          : journeyPhase === "formal_assessment" ? "双月正式评估"
+            : `正式学习 · Cycle ${journeyWorkspace.cycle?.cycle_number ?? 1}`;
+  const primaryAction = stageAction ?? (todayRecommendation ? {
+    href: `/study/${todayRecommendation.concept.capability.toLocaleLowerCase()}/${todayRecommendation.concept.code}`,
+    label: "开始学习",
+    title: todayRecommendation.concept.titleZh,
+    description: todayRecommendation.reasons[0],
+  } : { href: "/study", label: "进入学习中心", title: "查看当前学习任务", description: "可以完成到期复习，或从知识地图选择内容。" });
 
   return (
     <main className="mx-auto w-full max-w-[1220px] px-5 py-6 sm:px-8 lg:px-12 lg:py-10">
@@ -88,56 +101,33 @@ export async function Dashboard() {
         <span className="grid size-11 shrink-0 place-items-center rounded-full bg-soft text-base font-semibold lg:hidden">{displayName.slice(0, 1).toLocaleUpperCase()}</span>
       </header>
 
-      <div className="mt-8"><JourneySummary workspace={journeyWorkspace} compact /></div>
-      <div className="mt-5"><GrowthPlanSummary plan={growthPlan.currentPlan} confidence={growthPlan.confidence} capabilityLabels={capabilityLabels} compact /></div>
-
-      <section className="mt-5 rounded-2xl border border-line bg-white p-5 sm:p-7">
-        <div className="flex flex-wrap items-start justify-between gap-4"><div><h2 className="text-xl font-bold">你的学习旅程</h2><p className="mt-2 text-sm leading-6 text-muted">基础预学习不是正式 Cycle。完成基线诊断并确认正式开始后，系统才会按 Cycle 组织学习、实践与双月评估。</p></div><ContextHelpLink section="journey">了解完整学习流程</ContextHelpLink></div>
-        <ol className="mt-6 grid gap-3 sm:grid-cols-3 xl:grid-cols-6">
-          {journeySteps.map((step, index) => <li key={step} className={`rounded-xl px-4 py-4 ${index === currentStep ? "bg-accent text-white" : index < currentStep ? "bg-accent-soft text-accent-strong" : "bg-soft text-muted"}`}><span className={`grid size-7 place-items-center rounded-full text-xs font-bold ${index === currentStep ? "bg-white text-accent" : "bg-white"}`}>{index < currentStep ? <Check size={15} /> : index + 1}</span><p className="mt-3 text-sm font-bold leading-5">{step}</p></li>)}
+      <section className="mt-8 overflow-hidden rounded-2xl border border-line bg-white">
+        <div className="grid gap-6 p-5 sm:p-7 lg:grid-cols-[minmax(0,1fr)_280px] lg:items-center">
+          <div>
+            <div className="flex flex-wrap items-center gap-3"><p className="text-sm font-bold text-accent">{journeyWorkspace.journey.mode === "trial" ? "TRIAL JOURNEY · 试用旅程" : `LEARNING JOURNEY ${journeyWorkspace.journey.sequence_number}`}</p><span className="text-sm text-muted">{phaseLabel}</span></div>
+            <p className="mt-5 text-sm font-bold text-muted">当前下一步</p>
+            {todayRecommendation && !stageAction ? <p className="mt-2 text-lg font-medium text-muted">{todayRecommendation.concept.titleEn}</p> : null}
+            <h2 className="mt-1 text-[30px] font-bold leading-tight tracking-[-0.035em] sm:text-[38px]">{primaryAction.title}</h2>
+            <p className="mt-3 max-w-2xl text-[15px] leading-6 text-muted">{primaryAction.description}</p>
+            <div className="mt-6 flex flex-wrap items-center gap-4"><Link href={primaryAction.href} className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-accent px-6 text-sm font-bold text-white hover:bg-accent-strong">{primaryAction.label} <ArrowRight aria-hidden="true" size={19} /></Link><ContextHelpLink section="journey">了解完整流程</ContextHelpLink></div>
+          </div>
+          <div className="rounded-xl bg-soft p-5">
+            <div className="flex items-end justify-between gap-3"><div><p className="text-xs font-bold text-muted">当前阶段</p><p className="mt-1 font-bold">{phaseLabel}</p></div><p className="text-sm font-bold text-accent">{journeyPhase === "foundation" ? `${journeyWorkspace.foundationCompleted}/${journeyWorkspace.foundationTotal || 24}` : journeyWorkspace.latestAssessment?.readiness_score == null ? "尚未评估" : `${journeyWorkspace.latestAssessment.readiness_score}/100`}</p></div>
+            {journeyPhase === "foundation" ? <div className="mt-4 h-2 overflow-hidden rounded-full bg-white"><div className="h-full rounded-full bg-accent" style={{ width: `${journeyWorkspace.foundationTotal ? journeyWorkspace.foundationCompleted / journeyWorkspace.foundationTotal * 100 : 0}%` }} /></div> : null}
+            <p className="mt-4 text-xs leading-5 text-muted">{nextAction}</p>
+          </div>
+        </div>
+        <ol className="grid border-t border-line sm:grid-cols-3 xl:grid-cols-6">
+          {journeySteps.map((step, index) => <li key={step} className={`flex min-h-12 items-center gap-2 border-line px-4 py-3 text-xs font-semibold sm:border-r ${index === currentStep ? "bg-accent-soft text-accent-strong" : index < currentStep ? "text-accent" : "text-muted"}`}><span className={`grid size-5 shrink-0 place-items-center rounded-full text-[10px] ${index <= currentStep ? "bg-accent text-white" : "bg-soft"}`}>{index < currentStep ? <Check size={12} /> : index + 1}</span>{step}</li>)}
         </ol>
-        <p className="mt-5 text-sm leading-6 text-muted"><strong className="text-ink">当前下一步：</strong>{nextAction}</p>
       </section>
 
-      <section className="mt-5 grid gap-4 lg:grid-cols-[minmax(0,1fr)_360px]">
-        <div className="rounded-2xl bg-accent-soft p-6 sm:p-8 lg:min-h-72">
-          <p className="text-sm font-bold text-accent-strong">今日建议学习</p>
-          <div className="mt-6 flex flex-col justify-between gap-6 lg:h-[188px]">
-            {stageAction ? <div>
-              <h2 className="text-[28px] font-bold leading-tight tracking-[-0.03em]">{stageAction.title}</h2>
-              <p className="mt-3 max-w-xl text-[15px] leading-6 text-muted sm:text-base">{stageAction.description}</p>
-              <Link href={stageAction.href} className="mt-7 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-accent px-6 text-sm font-bold text-white transition-colors hover:bg-accent-strong sm:w-fit">{stageAction.label} <ArrowRight aria-hidden="true" size={19} /></Link>
-            </div> : todayRecommendation ? <>
-              <div>
-                <p className="text-[22px] font-medium text-muted sm:text-[25px]">{todayRecommendation.concept.titleEn}</p>
-                <h2 className="mt-1 text-[34px] font-bold leading-tight tracking-[-0.035em] sm:text-[38px]">{todayRecommendation.concept.titleZh}</h2>
-                <p className="mt-3 max-w-xl text-[15px] leading-6 text-muted sm:text-base">{todayRecommendation.reasons[0]}</p>
-              </div>
-              <Link
-                href={`/study/${todayRecommendation.concept.capability.toLocaleLowerCase()}/${todayRecommendation.concept.code}`}
-                className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-accent px-6 text-sm font-bold text-white transition-colors hover:bg-accent-strong sm:w-fit"
-              >
-                开始学习 <ArrowRight aria-hidden="true" size={19} />
-              </Link>
-            </> : <div><h2 className="text-2xl font-bold">当前没有新的推荐项</h2><p className="mt-3 text-muted">可以完成到期复习，或从知识地图自由浏览。</p></div>}
-          </div>
-        </div>
-
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-1">
-          <div className="flex min-h-32 items-center justify-between rounded-2xl border border-line bg-white p-6 lg:min-h-36">
-            <div>
-              <h2 className="text-lg font-bold">今日待复习</h2>
-              <p className="mt-2 text-2xl font-bold">{due.length} 项</p>
-            </div>
-            <Link href="/quiz" className="inline-flex min-h-12 items-center justify-center rounded-xl border border-accent px-5 text-sm font-bold text-accent hover:bg-accent-soft">
-              开始 Quiz
-            </Link>
-          </div>
-          <Link href="/capture" aria-label="＋ 记录工作 / 想法" className="flex min-h-[76px] items-center justify-center gap-3 rounded-xl bg-accent px-6 text-base font-bold text-white transition-colors hover:bg-accent-strong lg:min-h-28">
-            <Plus aria-hidden="true" size={23} />记录工作 / 想法
-          </Link>
-        </div>
+      <section className="mt-5 grid gap-4 sm:grid-cols-2">
+        <div className="flex min-h-28 items-center justify-between rounded-2xl border border-line bg-white p-5 sm:p-6"><div><h2 className="text-lg font-bold">待复习</h2><p className="mt-1 text-sm text-muted">当前 {due.length} 项到期</p></div><Link href="/quiz" className="inline-flex min-h-11 items-center justify-center rounded-xl border border-accent px-5 text-sm font-bold text-accent hover:bg-accent-soft">开始 Quiz</Link></div>
+        <Link href="/capture" className="flex min-h-28 items-center justify-between rounded-2xl bg-accent px-6 text-white hover:bg-accent-strong"><div><p className="text-lg font-bold">记录真实工作</p><p className="mt-1 text-sm text-white/80">保存事件、判断与结果</p></div><Plus aria-hidden="true" size={24} /></Link>
       </section>
+
+      <div className="mt-5"><GrowthPlanSummary plan={growthPlan.currentPlan} confidence={growthPlan.confidence} capabilityLabels={capabilityLabels} compact /></div>
 
       <div className="dashboard-details mt-9 lg:gap-x-8">
         <section className="dashboard-gap border-b border-line pb-8 lg:pr-0">

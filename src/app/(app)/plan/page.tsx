@@ -25,7 +25,7 @@ export default async function PlanPage() {
       <Layer number="1" title="长期发展目标" description="你希望承担什么更高层级的责任，原则上保持稳定。" />
       <Layer number="2" title="能力标准" description="高级管理者需要达到的六项能力，由系统课程框架维护。" />
       <Layer number="3" title="阶段训练重点" description="未来 6–8 周聚焦 1–2 项能力，由 AI 建议、你确认。" />
-      <Layer number="4" title="每日学习计划" description="Study、Quiz 与实践任务根据实时状态动态安排。" />
+      <Layer number="4" title="动态学习任务" description="学习、复习与实践任务根据旅程阶段和实时状态安排。" />
     </section>
 
     <div className="mt-8"><GrowthPlanSummary plan={workspace.currentPlan} confidence={workspace.confidence} capabilityLabels={capabilityLabels} showManage={false} /></div>

@@ -26,8 +26,9 @@ export function GrowthPlanSummary({
     <section className={`rounded-2xl border border-line ${compact ? "p-5 sm:p-6" : "p-6 sm:p-7"}`}>
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div className="min-w-0 flex-1">
-          <div className="flex flex-wrap items-center gap-3"><p className="text-sm font-bold text-accent">当前成长计划 · v{plan.version}</p><span className="text-xs font-semibold text-muted">{plan.source === "ai" ? "AI 建议，用户确认" : plan.source === "migration" ? "从原 Growth Profile 迁移" : "用户制定"}</span></div>
+          <div className="flex flex-wrap items-center gap-3"><p className="text-sm font-bold text-accent">当前成长计划 · v{plan.version}</p><span className="text-xs font-semibold text-muted">{plan.source === "ai" ? "AI 建议，用户确认" : plan.source === "migration" ? "历史迁移计划 · 仅供当前旅程参考" : "用户制定"}</span></div>
           <h2 className="mt-2 text-xl font-bold sm:text-2xl">{plan.phase_goal}</h2>
+          {plan.source === "migration" ? <p className="mt-2 text-xs leading-5 text-muted">保留旧版本原文用于追溯；其中旧“季度评估”记录不计入当前旅程的正式评分。</p> : null}
           {!compact ? <p className="mt-3 max-w-3xl leading-7 text-muted"><strong className="text-foreground">长期目标：</strong>{plan.long_term_goal}</p> : null}
         </div>
         {showManage ? <Link href="/plan" className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-line px-4 text-sm font-bold hover:border-accent hover:text-accent">管理计划 <ArrowRight size={17} /></Link> : null}
