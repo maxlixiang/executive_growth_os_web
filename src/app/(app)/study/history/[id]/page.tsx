@@ -9,12 +9,13 @@ export default async function StudySessionPage({ params }: { params: Promise<{ i
   const { id } = await params;
   const item = await getStudySession(id);
   if (!item) notFound();
-  const { session, concept } = item;
+  const { session, concept, attempt } = item;
   return (
     <PageContainer>
       <PageHeader backHref="/study/history" eyebrow={`${session.session_type === "quiz" ? "Quiz" : "Study"} · ${session.is_valid ? "Valid" : "Invalid"}`} title={concept?.title_zh ?? "学习记录"} description={`${concept?.capability ?? ""} · ${concept?.title_en ?? ""}`} />
       <div className="mt-8 grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
         <article className="space-y-7 rounded-2xl border border-line p-6 sm:p-8">
+          {attempt?.teaching_intro ? <SessionField title="当时的概念教学" text={attempt.teaching_intro} /> : null}
           <SessionField title="Recall Question" text={session.recall_question} />
           <SessionField title="你的 Recall 回答" text={session.recall_answer} />
           <SessionField title="Application Question" text={session.application_question} />
@@ -25,6 +26,7 @@ export default async function StudySessionPage({ params }: { params: Promise<{ i
         <aside className="space-y-4">
           <section className="grid grid-cols-2 gap-3"><Score label="Concept" value={session.concept_score} /><Score label="Application" value={session.application_score} /></section>
           <section className="rounded-2xl bg-soft p-5 text-sm leading-6"><p><strong>Status：</strong>{session.resulting_status}</p><p className="mt-2"><strong>Next Review：</strong>{session.resulting_next_review_at}</p>{session.invalidated_reason ? <p className="mt-2"><strong>作废原因：</strong>{session.invalidated_reason}</p> : null}</section>
+          {attempt?.question_context_markdown ? <details className="rounded-2xl border border-line p-4"><summary className="cursor-pointer font-bold">这次老师读取的精确记忆</summary><p className="mt-2 text-xs text-muted">提问时的记忆</p><pre className="mt-2 max-h-72 overflow-auto whitespace-pre-wrap break-words text-xs">{attempt.question_context_markdown}</pre>{attempt.evaluation_context_markdown ? <><p className="mt-3 text-xs text-muted">评分时的记忆</p><pre className="mt-2 max-h-72 overflow-auto whitespace-pre-wrap break-words text-xs">{attempt.evaluation_context_markdown}</pre></> : null}</details> : null}
           <SessionValidityControl sessionId={session.id} valid={session.is_valid} />
         </aside>
       </div>

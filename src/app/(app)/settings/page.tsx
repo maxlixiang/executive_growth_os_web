@@ -12,6 +12,7 @@ export default async function SettingsPage() {
   return <PageContainer>
     <PageHeader backHref="/" eyebrow="Account & Data" title="设置" description="管理界面称呼、学习旅程日期和数据边界。成长目标与阶段训练计划已移至独立的成长计划页面。" />
 
+    <section className="mt-6 rounded-2xl border border-line p-5"><h2 className="text-xl font-bold">私人老师的学习记忆</h2><p className="mt-2 text-sm text-muted">查看并纠正背景档案，检查AI读取的学习历史。</p><Link href="/memory" className="mt-4 inline-block font-bold text-accent">打开AI学习记忆 →</Link></section>
     <div className="mt-8"><NicknameForm nickname={workspace.profile?.display_name || workspace.user.email.split("@")[0] || ""} email={workspace.user.email} /></div>
 
     <section className="mt-6 rounded-2xl bg-accent-soft p-5 sm:p-7">

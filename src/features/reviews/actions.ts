@@ -1,5 +1,7 @@
 "use server";
 
+import { nextManagementQuestion, evaluateManagementInterview } from "@/features/ai/interview-teacher";
+import { buildGrowthContext } from "@/features/ai/context-builder";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { generateInterviewQuestion, generateMonthlyReview, generatePracticeInterviewFeedback, generateQuarterlyAssessment } from "@/features/ai/reviewer";
@@ -95,14 +97,17 @@ function transcriptText(messages: Array<{ role: string; content: string; sequenc
   return messages.map((item) => `${item.sequence_number}. ${item.role === "interviewer" ? "Interviewer" : "User"}: ${item.content}`).join("\n\n");
 }
 
-async function insertQuestion(sessionId: string, sequence: number, context: string, transcript: string) {
+async function insertQuestion(sessionId: string, sequence: number, context: string, transcript: string, managementAnswers?: number) {
   const { supabase, user } = await requireUser();
-  const question = await generateInterviewQuestion(context, transcript);
+  const { data: parent, error: parentError } = await supabase.from("interview_sessions").select("journey_id").eq("id", sessionId).eq("user_id", user.id).eq("status", "active").single();
+  if (parentError || !parent) throw new Error("Active interview required");
+  const question = managementAnswers === undefined ? await generateInterviewQuestion(context, transcript) : await nextManagementQuestion(context, transcript, managementAnswers);
   const { data: capability, error: capabilityError } = await supabase.from("capabilities").select("id").eq("code", question.capability_focus).single();
   if (capabilityError) throw new Error(capabilityError.message);
   const { error } = await supabase.from("interview_messages").insert({
     user_id: user.id,
     interview_session_id: sessionId,
+    journey_id: parent.journey_id,
     role: "interviewer",
     content: question.question,
     capability_id: capability.id,
@@ -147,7 +152,7 @@ export async function startPracticeInterview(_previous: WorkflowState, formData:
     const { supabase, user } = await requireUser();
     const { data: journey, error: journeyError } = await supabase.from("learning_journeys").select("id").eq("user_id", user.id).eq("status", "active").maybeSingle();
     if (journeyError || !journey) throw new Error(journeyError?.message ?? "Active journey required");
-    const { data: session, error } = await supabase.from("interview_sessions").insert({ user_id: user.id, journey_id: journey.id, title }).select("*").single();
+    const { data: session, error } = await supabase.from("interview_sessions").insert({ user_id: user.id, journey_id: journey.id, title, rubric_version: 2 }).select("*").single();
     if (error || !session) throw new Error(error?.message ?? "Unable to start interview");
     const { error: eventError } = await supabase.from("activity_events").insert({
       user_id: user.id,
@@ -159,8 +164,8 @@ export async function startPracticeInterview(_previous: WorkflowState, formData:
       source_id: session.id,
     });
     if (eventError) throw new Error(eventError.message);
-    const context = await buildPeriodContext(supabase, user.id, recentPracticePeriod());
-    await insertQuestion(session.id, 1, context, "");
+    const context = await buildGrowthContext(supabase, user.id);
+    await insertQuestion(session.id, 1, context, "", 0);
     revalidatePath("/interviews");
     revalidatePath("/assessment?view=history");
     return { ok: true, message: "模拟面试已准备好。", href: `/interviews/${session.id}` };
@@ -171,8 +176,10 @@ export async function startPracticeInterview(_previous: WorkflowState, formData:
 
 async function advanceInterview(sessionId: string): Promise<WorkflowState> {
   const { supabase, user } = await requireUser();
+  const { data: activeJourney, error: activeError } = await supabase.from("learning_journeys").select("id").eq("user_id", user.id).eq("status", "active").single();
+  if (activeError || !activeJourney) throw new Error("Active journey required");
   const [sessionResult, messagesResult] = await Promise.all([
-    supabase.from("interview_sessions").select("*, quarterly_reviews(*)").eq("id", sessionId).eq("user_id", user.id).maybeSingle(),
+    supabase.from("interview_sessions").select("*, quarterly_reviews(*)").eq("id", sessionId).eq("user_id", user.id).eq("journey_id", activeJourney.id).maybeSingle(),
     supabase.from("interview_messages").select("role, content, sequence_number").eq("interview_session_id", sessionId).eq("user_id", user.id).order("sequence_number"),
   ]);
   if (sessionResult.error || !sessionResult.data) throw new Error(sessionResult.error?.message ?? "Interview not found");
@@ -187,22 +194,23 @@ async function advanceInterview(sessionId: string): Promise<WorkflowState> {
   const key = review ? `${review.period_start.slice(0, 4)}-Q${quarter}` : "自主模拟面试";
   const period = review ? quarterPeriod(key) : recentPracticePeriod();
   if (!period) throw new Error("Invalid review period");
-  const context = await buildPeriodContext(supabase, user.id, period);
+  const context = session.rubric_version === 2 ? await buildGrowthContext(supabase, user.id) : await buildPeriodContext(supabase, user.id, period);
   const transcript = transcriptText(messages);
   if (!last) {
-    await insertQuestion(sessionId, 1, context, "");
+    await insertQuestion(sessionId, 1, context, "", session.rubric_version === 2 ? 0 : undefined);
     revalidatePath(`/interviews/${sessionId}`);
     return { ok: true, message: "第一问已生成。" };
   }
   if (last.role !== "user") return { ok: true, message: "请回答当前问题。" };
-  if (answerCount < 3) {
-    await insertQuestion(sessionId, last.sequence_number + 1, context, transcript);
+  if (answerCount < (session.rubric_version === 2 ? 12 : 3)) {
+    await insertQuestion(sessionId, last.sequence_number + 1, context, transcript, session.rubric_version === 2 ? answerCount : undefined);
     revalidatePath(`/interviews/${sessionId}`);
     return { ok: true, message: "下一问已生成。" };
   }
   if (!review) {
-    const feedback = await generatePracticeInterviewFeedback(context, transcript);
-    const { error } = await supabase.from("interview_sessions").update({ status: "completed", completed_at: new Date().toISOString(), feedback_markdown: feedback }).eq("id", session.id).eq("user_id", user.id);
+    const readiness = session.rubric_version === 2 ? await evaluateManagementInterview(context, transcript, messages.filter(m => m.role === "user").map(m => m.sequence_number)) : null;
+    const feedback = readiness?.feedback_markdown ?? await generatePracticeInterviewFeedback(context, transcript);
+    const { error } = await supabase.from("interview_sessions").update({ status: "completed", completed_at: new Date().toISOString(), feedback_markdown: feedback, readiness_result: readiness }).eq("id", session.id).eq("user_id", user.id).eq("journey_id", activeJourney.id).eq("status", "active").select("id").single();
     if (error) throw new Error(error.message);
     const { error: eventError } = await supabase.from("activity_events").insert({
       user_id: user.id,
@@ -241,11 +249,15 @@ export async function answerInterview(_previous: WorkflowState, formData: FormDa
   if (!parsed.success) return { ok: false, message: "请输入有效回答。" };
   try {
     const { supabase, user } = await requireUser();
+    const { data: activeJourney, error: journeyError } = await supabase.from("learning_journeys").select("id").eq("user_id", user.id).eq("status", "active").single();
+    if (journeyError || !activeJourney) throw new Error("Active journey required");
+    const { data: activeSession, error: sessionError } = await supabase.from("interview_sessions").select("id").eq("id", parsed.data.id).eq("user_id", user.id).eq("journey_id", activeJourney.id).eq("status", "active").single();
+    if (sessionError || !activeSession) return { ok: false, message: "这场面试已结束或属于旧旅程。" };
     const { data: messages, error: messagesError } = await supabase.from("interview_messages").select("role, sequence_number").eq("interview_session_id", parsed.data.id).eq("user_id", user.id).order("sequence_number");
     if (messagesError) throw new Error(messagesError.message);
     const last = messages?.at(-1);
     if (!last || last.role !== "interviewer") return { ok: false, message: "当前没有等待回答的问题。" };
-    const { error } = await supabase.from("interview_messages").insert({ user_id: user.id, interview_session_id: parsed.data.id, role: "user", content: parsed.data.answer, sequence_number: last.sequence_number + 1 });
+    const { error } = await supabase.from("interview_messages").insert({ user_id: user.id, interview_session_id: parsed.data.id, journey_id: activeJourney.id, role: "user", content: parsed.data.answer, sequence_number: last.sequence_number + 1 });
     if (error) throw new Error(error.message);
     return await advanceInterview(parsed.data.id);
   } catch (error) {

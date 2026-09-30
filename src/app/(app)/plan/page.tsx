@@ -1,3 +1,4 @@
+import { InterviewReadinessSummary } from "@/features/interviews/readiness-summary";
 import { PageContainer, PageHeader } from "@/components/page-header";
 import { ContextHelpLink } from "@/components/context-help-link";
 import { FeatureTabs, growthTabs } from "@/components/feature-tabs";
@@ -17,6 +18,7 @@ export default async function PlanPage() {
   return <PageContainer>
     <PageHeader backHref="/" eyebrow="Long-term Growth" title="成长计划" description="长期目标保持方向稳定；AI 根据学习与实践数据建议 6–8 周阶段计划，由你确认后生效。" />
     <FeatureTabs tabs={growthTabs} active="/plan" />
+    <InterviewReadinessSummary />
     <ContextHelpLink section="plan">成长计划与学习 Cycle 如何配合？</ContextHelpLink>
 
     <div className="mt-8"><JourneySummary workspace={journeyWorkspace} /></div>

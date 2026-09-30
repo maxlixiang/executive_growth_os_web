@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
+import { buildGrowthContext } from "@/features/ai/context-builder";
 import { evaluateAssessment } from "@/features/ai/assessment-evaluator";
 import { requireUser } from "@/lib/auth/require-user";
 import { assessmentQuestions } from "./questions";
@@ -48,6 +49,9 @@ export async function submitAssessment(sessionId: string, answers: unknown): Pro
     const { data: session, error: sessionError } = await supabase.from("assessment_sessions").select("id, journey_id, assessment_type, status, question_set")
       .eq("id", parsedId.data).eq("user_id", user.id).eq("status", "in_progress").single();
     if (sessionError || !session) return { ok: false, error: "这场评估不存在或已经结束。" };
+    const { data: journey, error: journeyError } = await supabase.from("learning_journeys").select("id").eq("user_id", user.id).eq("status", "active").single();
+    if (journeyError || journey.id !== session.journey_id) return { ok: false, error: "这场评估属于旧旅程。" };
+    const personalContext = await buildGrowthContext(supabase, user.id);
     const [capabilities, evidence, progress] = await Promise.all([
       supabase.from("capabilities").select("id, code, title_en, title_zh").eq("is_active", true).order("sort_order"),
       supabase.from("practice_evidence").select("id, capability_id, evidence_level, context, user_role, action, decision, outcome, limitations, reviewed_at")
@@ -58,7 +62,7 @@ export async function submitAssessment(sessionId: string, answers: unknown): Pro
     if (failed?.error) throw failed.error;
     const codeById = new Map((capabilities.data ?? []).map((item) => [item.id, item.code]));
     const confirmedEvidence = (evidence.data ?? []).map((item) => ({ ...item, capability_code: codeById.get(item.capability_id) }));
-    const evaluation = await evaluateAssessment({ assessment_type: session.assessment_type, questions: session.question_set, answers: parsedAnswers.data, confirmed_practice_evidence: confirmedEvidence, knowledge_progress: progress.data });
+    const evaluation = await evaluateAssessment({ personal_teacher_memory: personalContext, assessment_type: session.assessment_type, questions: session.question_set, answers: parsedAnswers.data, confirmed_practice_evidence: confirmedEvidence, knowledge_progress: progress.data });
     const validEvidenceIds = new Set(confirmedEvidence.map((item) => item.id));
     const maxLevelByCode = new Map<string, keyof typeof evidenceCaps>();
     for (const item of confirmedEvidence) {
@@ -72,7 +76,7 @@ export async function submitAssessment(sessionId: string, answers: unknown): Pro
       const score = scoreByCode.get(code);
       if (!score) throw new Error(`Missing capability score: ${code}`);
       const level = maxLevelByCode.get(code) ?? "E0";
-      return { ...score, knowledge_score: Math.max(0, Math.min(30, Math.round(score.knowledge_score * 10) / 10)), case_score: Math.max(0, Math.min(30, Math.round(score.case_score * 10) / 10)), practice_score: Math.max(0, Math.min(evidenceCaps[level], Math.round(score.practice_score * 10) / 10)), evidence_level: level, evidence_refs: score.evidence_refs.filter((id) => validEvidenceIds.has(id)) };
+      return { ...score, knowledge_score: Math.max(0, Math.min(30, Math.round(score.knowledge_score * 10) / 10)), case_score: Math.max(0, Math.min(30, Math.round(score.case_score * 10) / 10)), practice_score: Math.max(0, Math.min(evidenceCaps[level], Math.round(score.practice_score * 10) / 10)), evidence_level: level, evidence_refs: score.evidence_refs.filter((id) => validEvidenceIds.has(id) && confirmedEvidence.some(e => e.id === id && e.capability_code === code)) };
     });
     const readiness = calculateReadiness(Object.fromEntries(normalized.map((item) => [item.code, { knowledge: item.knowledge_score, case: item.case_score, practice: item.practice_score }])) as Record<CapabilityCode, { knowledge: number; case: number; practice: number }>);
     const { data, error } = await supabase.rpc("complete_assessment_session", { p_session_id: session.id, p_answer_set: parsedAnswers.data, p_scores: normalized, p_confidence_score: evaluation.confidence_score, p_result_summary: evaluation.summary });

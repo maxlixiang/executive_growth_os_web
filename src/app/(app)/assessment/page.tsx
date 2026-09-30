@@ -1,3 +1,4 @@
+import { InterviewReadinessSummary } from "@/features/interviews/readiness-summary";
 import Link from "next/link";
 import { ArrowRight, CheckCircle2, Circle, Clock3, Gauge, ShieldCheck } from "lucide-react";
 import { ContextHelpLink } from "@/components/context-help-link";
@@ -47,6 +48,7 @@ export default async function AssessmentPage({ searchParams }: { searchParams: P
     <PageContainer>
       <PageHeader backHref="/" eyebrow="Current Assessment" title="评估与复盘" description="基线诊断建立初始分数；自主评估用于查漏补缺；双月正式评估更新可审计的正式评分。" />
       <FeatureTabs tabs={assessmentTabs} active="/assessment" />
+      <InterviewReadinessSummary />
       <ContextHelpLink section="assessment">了解三类评估、评分和 Cycle 规则</ContextHelpLink>
       <div className="mt-7"><JourneySummary workspace={workspace} /></div>
 

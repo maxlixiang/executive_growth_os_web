@@ -11,7 +11,7 @@ export const dynamic = "force-dynamic";
 export default async function InterviewsPage() {
   const { interviews } = await getReviewHistory();
   return <PageContainer>
-    <PageHeader eyebrow="Practice Interview" title="评估与复盘" description="模拟面试由你随时发起；它用于练习和教学反馈，不会直接改变正式评分。" />
+    <PageHeader eyebrow="Practice Interview" title="评估与复盘" description="模拟面试由你随时发起：六项能力各一问一追问，给出可追溯的面试准备度。可以使用明确标记的模拟案例；回答好问题仍需在实际工作中历练。" />
     <FeatureTabs tabs={assessmentTabs} active="/interviews" />
     <ContextHelpLink section="interviews">怎样回答才能获得更有效的练习反馈？</ContextHelpLink>
     <InterviewStartForm />

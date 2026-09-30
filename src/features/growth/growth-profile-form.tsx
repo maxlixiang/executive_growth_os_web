@@ -35,7 +35,7 @@ export function GrowthPlanManager({
       <form action={recommendAction} className="rounded-2xl border border-line p-5 sm:p-7">
         <div className="flex items-start gap-3">
           <span className="grid size-10 shrink-0 place-items-center rounded-full bg-accent-soft text-accent"><Bot aria-hidden="true" size={20} /></span>
-          <div><h2 className="text-xl font-bold">让 AI 建议下一阶段计划</h2><p className="mt-1 text-sm leading-6 text-muted">只发送长期目标和能力级聚合数据，不发送会议、复盘或证据正文。AI 只提出建议，不会自动修改当前计划。</p></div>
+          <div><h2 className="text-xl font-bold">让 AI 建议下一阶段计划</h2><p className="mt-1 text-sm leading-6 text-muted">发送长期目标、能力级信号及当前旅程的私人教学记忆（档案、学习问答、工作记录、确认的证据和复盘）给DeepSeek，以便个性化规划。AI 只提出建议，不会自动修改当前计划。</p></div>
         </div>
         <label className="mt-6 block"><span className="font-bold">长期发展目标</span><textarea name="longTermGoal" defaultValue={goal} rows={4} maxLength={2000} required minLength={10} placeholder="例如：从法务专业岗位成长为能够承担经营判断、跨部门执行与组织影响责任的高级管理者。" className="mt-3 w-full rounded-xl border border-line px-4 py-3 leading-7" /></label>
         {recommendation.message ? <Status ok={recommendation.ok} message={recommendation.message} /> : null}

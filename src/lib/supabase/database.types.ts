@@ -186,6 +186,13 @@ export type Database = {
   }
   public: {
     Tables: {
+      learner_memories: {
+        Row: { user_id: string; journey_id: string; profile_markdown: string; updated_at: string }
+        Insert: { user_id: string; journey_id: string; profile_markdown?: string; updated_at?: string }
+        Update: { profile_markdown?: string; updated_at?: string }
+        Relationships: []
+      }
+
       activity_events: Database["graphql_public"]["Tables"]["activity_events"]
       assessment_capability_scores: Database["graphql_public"]["Tables"]["assessment_capability_scores"]
       assessment_sessions: Database["graphql_public"]["Tables"]["assessment_sessions"]
@@ -463,6 +470,7 @@ export type Database = {
       }
       interview_messages: {
         Row: {
+          journey_id: string
           capability_id: string | null
           content: string
           created_at: string
@@ -473,6 +481,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          journey_id?: string
           capability_id?: string | null
           content: string
           created_at?: string
@@ -483,6 +492,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          journey_id?: string
           capability_id?: string | null
           content?: string
           created_at?: string
@@ -511,6 +521,8 @@ export type Database = {
       }
       interview_sessions: {
         Row: {
+          rubric_version: number
+          readiness_result: Json | null
           completed_at: string | null
           created_at: string
           feedback_markdown: string | null
@@ -524,6 +536,8 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          rubric_version?: number
+          readiness_result?: Json | null
           completed_at?: string | null
           created_at?: string
           feedback_markdown?: string | null
@@ -537,6 +551,8 @@ export type Database = {
           user_id: string
         }
         Update: {
+          rubric_version?: number
+          readiness_result?: Json | null
           completed_at?: string | null
           created_at?: string
           feedback_markdown?: string | null
@@ -1058,6 +1074,11 @@ export type Database = {
       }
       study_attempts: {
         Row: {
+          journey_id: string
+          teaching_intro: string | null
+          teaching_mode: string
+          question_context_markdown: string | null
+          evaluation_context_markdown: string | null
           ai_feedback: string | null
           ai_rationale: string | null
           application_answer: string | null
@@ -1076,6 +1097,11 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          journey_id?: string
+          teaching_intro?: string | null
+          teaching_mode?: string
+          question_context_markdown?: string | null
+          evaluation_context_markdown?: string | null
           ai_feedback?: string | null
           ai_rationale?: string | null
           application_answer?: string | null
@@ -1094,6 +1120,11 @@ export type Database = {
           user_id: string
         }
         Update: {
+          journey_id?: string
+          teaching_intro?: string | null
+          teaching_mode?: string
+          question_context_markdown?: string | null
+          evaluation_context_markdown?: string | null
           ai_feedback?: string | null
           ai_rationale?: string | null
           application_answer?: string | null
@@ -1383,6 +1414,8 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      save_learner_memory: { Args: { p_journey_id: string; p_markdown: string }; Returns: undefined }
+
       activate_growth_plan: {
         Args: {
           p_change_reason: string | null

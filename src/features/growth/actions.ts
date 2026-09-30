@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
+import { buildGrowthContext } from "@/features/ai/context-builder";
 import { recommendGrowthPlan, type GrowthPlanSuggestion } from "@/features/ai/growth-planner";
 import { requireUser } from "@/lib/auth/require-user";
 import type { Json } from "@/lib/supabase/database.types";
@@ -40,7 +41,10 @@ export async function generateGrowthPlanRecommendation(
       starts_at: workspace.currentPlan.starts_at,
       target_ends_at: workspace.currentPlan.target_ends_at,
     } : null;
+    const { supabase, user } = await requireUser();
+    const personalContext = await buildGrowthContext(supabase, user.id);
     const suggestion = await recommendGrowthPlan({
+      personalContext,
       longTermGoal: goal.data,
       planningSignals: workspace.planningSignals,
       confidence: workspace.confidence,

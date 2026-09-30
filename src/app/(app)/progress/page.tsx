@@ -1,3 +1,4 @@
+import { InterviewReadinessSummary } from "@/features/interviews/readiness-summary";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { ContextHelpLink } from "@/components/context-help-link";
@@ -54,7 +55,8 @@ export default async function ProgressPage() {
     <PageContainer>
       <PageHeader eyebrow="Growth Center" title="成长中心" description="在同一个入口查看成长计划、六项能力进度、实践证据与开放 Gap。" />
       <FeatureTabs tabs={growthTabs} active="/progress" />
-      <ContextHelpLink section="progress">进度和能力评分有什么区别？</ContextHelpLink>
+      <InterviewReadinessSummary />
+    <ContextHelpLink section="progress">进度和能力评分有什么区别？</ContextHelpLink>
       <div className="mt-8"><GrowthPlanSummary plan={growthPlan.currentPlan} confidence={growthPlan.confidence} capabilityLabels={capabilityLabels} /></div>
       <div className="mt-8 grid grid-cols-2 gap-3 lg:grid-cols-4">
         <Metric label="课程标准" value={workspace.concepts.length} suffix="项" />

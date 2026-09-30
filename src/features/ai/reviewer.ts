@@ -70,7 +70,7 @@ function contextFocuses(context: string) {
 export async function generateMonthlyReview(period: string, context: string) {
   const raw = await askDeepSeekJson({
     system: `你是严谨的高管发展评估者。只依据记录评估，不得虚构成果或数字；证据不足时必须明确说明。按以下章节输出 review_markdown：Executive Summary、Capability Progress、Knowledge Progress、Practice Progress、Strong Evidence、Repeated Weaknesses、Knowledge Gaps、Practice Gaps、Missed Opportunities、Next Month Focus、Recommended Concepts、Recommended Practice Challenges。focus_codes 只能从 business、finance、strategy、execution、leadership、influence 中选 1–3 项。所有输出使用中文。`,
-    user: `为 ${period} 生成 Monthly Review。以下上下文已经严格按该用户与自然月筛选：\n${context}`,
+    user: `为 ${period} 生成复盘。period内的事实记录是本次复盘的唯一进展依据；personal_teacher_memory只用于了解背景、旧误解和既有计划，不能把期间外事件算成本期成果：\n${context}`,
     schema: looseObjectSchema,
   });
   const currentState = object(raw.current_state);

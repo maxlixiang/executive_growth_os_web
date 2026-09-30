@@ -3,6 +3,8 @@ import { ArrowRight, CheckCircle2, CircleHelp } from "lucide-react";
 import { PageContainer, PageHeader } from "@/components/page-header";
 
 const helpSections = [
+  { id: "roi-example", title: "完整学习样例：ROI", english: "Learning Example", href: "/study/finance/ROI", purpose: "体验概念讲解、独立回答、纠错、保存与复习，再连接工作记录。", input: "先理解ROI＝净收益÷投入成本：收入130、成本100，净收益30，ROI为30%。另做迁移题：收入250、成本200，ROI为25%。", output: "AI分别判断概念与简单应用，解释错误。你确认后保存原始问答并安排复习；老师下次读取历史，检验是否遗忘或重复混淆收入与净收益。", tips: ["基础理解不等于整个财务能力通过。", "工作中遇到投资取舍时，记录你掌握的数据、疑问与判断，再由AI生成候选证据并由你核对。", "样例数字只是教学情境，不保存为你的真实工作成果。"] },
+  { id: "memory", title: "AI学习记忆", english: "Personal Teacher Memory", href: "/memory", purpose: "让老师连续了解你的背景、目标、原始学习回答与常见误解。", input: "填写或纠正岗位、基础、可用时间、学习偏好和工作机会。", output: "私有账户中持久保存的档案，及老师实际读取的Markdown上下文与来源ID。", tips: ["重新登录后仍可读取。", "未保存或作废的学习不构成掌握证据。", "重启旅程不会自动导入旧档案；可主动查看旧历史。"] },
   {
     id: "dashboard", title: "首页", english: "Dashboard", href: "/",
     purpose: "说明当前学习阶段、下一步行动、成长计划、下一项学习和到期复习。",
@@ -20,7 +22,7 @@ const helpSections = [
   {
     id: "learning", title: "学习中心", english: "Learning", href: "/study",
     purpose: "在同一个入口完成基础预学习、正式阶段学习、到期复习和知识地图浏览；页面会根据当前旅程阶段切换下一步。",
-    input: "先用自己的话回答，不要复制定义；应用题应结合真实或明确标注的假设情境。",
+    input: "基础学习先听概念讲解与例子，再用自己的话回忆；复习时先独立回答。应用题结合真实或明确标注的假设情境。",
     output: "基础预学习进度，或正式 Cycle 中的概念分、应用分、掌握状态、复习安排和知识覆盖情况。",
     tips: ["预学习阶段只推进 24 项核心概念，不使用正式阶段的动态推荐。", "基线诊断或正式开始待确认时，学习中心会停止推荐并引导你完成该节点。", "知识地图用于理解结构和自由浏览；学习历史统一在历史页查看。"],
   },
@@ -54,8 +56,8 @@ const helpSections = [
   },
   {
     id: "interviews", title: "模拟面试", english: "Interview Practice", href: "/interviews",
-    purpose: "在你认为合适时，用三轮追问练习以高管标准说明责任、判断、结果和组织影响。",
-    input: "优先回答真实案例，说明你的角色、决策依据、行动、量化结果、限制和复盘。",
+    purpose: "在你认为合适时，用六项能力各一问一追问（12次回答），检验管理者模拟面试准备度；每项结论保留原始回答依据。",
+    input: "说明你的角色、概念、决策依据、取舍和限制；无真实管理经历时允许明确标记的模拟案例，不能编造业绩。",
     output: "完整问答记录和 AI 练习反馈；它不会自动更新正式能力评分。",
     tips: ["由你决定何时开始，不设固定频率。", "不知道或没有真实案例时可以明确说明。", "不要编造数字；正式评分仍以正式评估流程为准。"],
   },

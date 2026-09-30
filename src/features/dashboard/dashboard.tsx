@@ -1,3 +1,4 @@
+import { InterviewReadinessSummary } from "@/features/interviews/readiness-summary";
 import Link from "next/link";
 import { ArrowRight, Check, ChevronRight, Plus } from "lucide-react";
 import { ContextHelpLink } from "@/components/context-help-link";
@@ -127,6 +128,7 @@ export async function Dashboard() {
         <Link href="/capture" className="flex min-h-28 items-center justify-between rounded-2xl bg-accent px-6 text-white hover:bg-accent-strong"><div><p className="text-lg font-bold">记录真实工作</p><p className="mt-1 text-sm text-white/80">保存事件、判断与结果</p></div><Plus aria-hidden="true" size={24} /></Link>
       </section>
 
+      <InterviewReadinessSummary />
       <div className="mt-5"><GrowthPlanSummary plan={growthPlan.currentPlan} confidence={growthPlan.confidence} capabilityLabels={capabilityLabels} compact /></div>
 
       <div className="dashboard-details mt-9 lg:gap-x-8">

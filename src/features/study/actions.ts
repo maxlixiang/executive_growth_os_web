@@ -5,13 +5,14 @@ import { z } from "zod";
 import { requireUser } from "@/lib/auth/require-user";
 import { generateStudyQuestions, evaluateStudyAnswers } from "@/features/ai/teacher";
 import { buildGrowthContext } from "@/features/ai/context-builder";
+import { getJourneyWorkspace } from "@/features/journeys/queries";
 import { getKnowledgeWorkspace } from "@/features/knowledge/queries";
 
 const uuidSchema = z.string().uuid();
 const answerSchema = z.object({
   attemptId: z.string().uuid(),
-  recallAnswer: z.string().trim().min(1, "请先回答 Recall Question。"),
-  applicationAnswer: z.string().trim().min(1, "请先回答 Application Question。"),
+  recallAnswer: z.string().trim().min(1, "请先回答 概念回忆题。").max(8000),
+  applicationAnswer: z.string().trim().min(1, "请先回答 应用题。").max(8000),
 });
 
 type Result<T> = { ok: true; data: T } | { ok: false; error: string };
@@ -25,6 +26,7 @@ function safeMessage(error: unknown) {
 
 export async function startStudyAttempt(conceptId: string, sessionType: "study" | "quiz"): Promise<Result<{
   attemptId: string;
+  teachingIntro: string;
   recallQuestion: string;
   applicationQuestion: string;
 }>> {
@@ -34,18 +36,25 @@ export async function startStudyAttempt(conceptId: string, sessionType: "study" 
     const [{ supabase, user }, workspace] = await Promise.all([requireUser(), getKnowledgeWorkspace()]);
     const concept = workspace.concepts.find((item) => item.id === parsedId.data);
     if (!concept) return { ok: false, error: "找不到这个知识点。" };
-    const context = await buildGrowthContext(supabase, user.id, concept.capabilityId);
-    const questions = await generateStudyQuestions(concept, context);
+    const journeyWorkspace = await getJourneyWorkspace();
+    if (!journeyWorkspace.journey) throw new Error("Active journey required");
+    const mode = sessionType === "quiz" ? "review" : journeyWorkspace.journey.stage === "preparation" ? "foundation" : "formal";
+    const context = await buildGrowthContext(supabase, user.id, concept.capabilityId, concept.id);
+    const questions = await generateStudyQuestions(concept, context, mode);
     const { data, error } = await supabase.from("study_attempts").insert({
       user_id: user.id,
       concept_id: concept.id,
       session_type: sessionType,
+      journey_id: journeyWorkspace.journey.id,
+      teaching_intro: questions.teaching_intro,
+      teaching_mode: mode,
+      question_context_markdown: context,
       recall_question: questions.recall_question,
       application_question: questions.application_question,
       status: "questioning",
     }).select("id").single();
     if (error) throw error;
-    return { ok: true, data: { attemptId: data.id, recallQuestion: questions.recall_question, applicationQuestion: questions.application_question } };
+    return { ok: true, data: { attemptId: data.id, teachingIntro: questions.teaching_intro, recallQuestion: questions.recall_question, applicationQuestion: questions.application_question } };
   } catch (error) {
     return { ok: false, error: safeMessage(error) };
   }
@@ -61,12 +70,14 @@ export async function evaluateStudyAttempt(input: z.infer<typeof answerSchema>):
   if (!parsed.success) return { ok: false, error: parsed.error.issues[0]?.message ?? "回答不完整。" };
   try {
     const [{ supabase, user }, workspace] = await Promise.all([requireUser(), getKnowledgeWorkspace()]);
+    const journeyWorkspace = await getJourneyWorkspace();
+    if (!journeyWorkspace.journey) throw new Error("Active journey required");
     const { data: attempt, error } = await supabase.from("study_attempts").select("*")
-      .eq("id", parsed.data.attemptId).eq("user_id", user.id).eq("status", "questioning").single();
+      .eq("id", parsed.data.attemptId).eq("user_id", user.id).eq("journey_id", journeyWorkspace.journey.id).eq("status", "questioning").gt("expires_at", new Date().toISOString()).single();
     if (error || !attempt) return { ok: false, error: "这次学习已取消、过期或不存在。" };
     const concept = workspace.concepts.find((item) => item.id === attempt.concept_id);
     if (!concept) return { ok: false, error: "找不到这个知识点。" };
-    const context = await buildGrowthContext(supabase, user.id, concept.capabilityId);
+    const context = await buildGrowthContext(supabase, user.id, concept.capabilityId, concept.id);
     const evaluation = await evaluateStudyAnswers({
       concept,
       context,
@@ -74,16 +85,18 @@ export async function evaluateStudyAttempt(input: z.infer<typeof answerSchema>):
       recallAnswer: parsed.data.recallAnswer,
       applicationQuestion: attempt.application_question,
       applicationAnswer: parsed.data.applicationAnswer,
+      mode: attempt.teaching_mode,
     });
     const { error: updateError } = await supabase.from("study_attempts").update({
       recall_answer: parsed.data.recallAnswer,
       application_answer: parsed.data.applicationAnswer,
       ai_feedback: evaluation.teaching,
+      evaluation_context_markdown: context,
       ai_rationale: evaluation.rationale,
       concept_score: evaluation.concept_score,
       application_score: evaluation.application_score,
       status: "awaiting_confirmation",
-    }).eq("id", attempt.id).eq("user_id", user.id).eq("status", "questioning");
+    }).eq("id", attempt.id).eq("user_id", user.id).eq("journey_id", journeyWorkspace.journey.id).eq("status", "questioning").select("id").single();
     if (updateError) throw updateError;
     return { ok: true, data: {
       teaching: evaluation.teaching,

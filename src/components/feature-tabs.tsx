@@ -30,6 +30,7 @@ export const learningTabs = [
   { href: "/study", label: "学习" },
   { href: "/quiz", label: "复习" },
   { href: "/knowledge", label: "知识地图" },
+  { href: "/memory", label: "AI记忆" },
 ] as const;
 
 export const recordTabs = [

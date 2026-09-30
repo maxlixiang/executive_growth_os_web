@@ -62,15 +62,18 @@ function assertNoErrors(results: Array<{ error: { message: string } | null }>) {
 
 async function loadWorkspace(client: SupabaseClient<Database>, userId: string): Promise<KnowledgeWorkspace> {
   const since = new Date(Date.now() - 30 * 86_400_000).toISOString();
+  const { data: journey, error } = await client.from("learning_journeys").select("id").eq("user_id", userId).eq("status", "active").maybeSingle();
+  if (error) throw new Error(error.message);
+  const jid = journey?.id ?? "00000000-0000-0000-0000-000000000000";
   const [capabilitiesResult, categoriesResult, conceptsResult, prerequisitesResult, progressResult, planResult, focusesResult, gapsResult] = await Promise.all([
     client.from("capabilities").select("*").eq("is_active", true).order("sort_order"),
     client.from("knowledge_categories").select("*").eq("is_active", true).order("sort_order"),
     client.from("knowledge_concepts").select("*").eq("is_active", true).order("sort_order"),
     client.from("knowledge_concept_prerequisites").select("concept_id, prerequisite_concept_id"),
     client.from("knowledge_progress").select("*").eq("user_id", userId),
-    client.from("growth_plans").select("focus_codes").eq("user_id", userId).eq("status", "active").maybeSingle(),
+    client.from("growth_plans").select("focus_codes").eq("user_id", userId).filter("journey_id", "eq", jid).eq("status", "active").maybeSingle(),
     client.from("user_focuses").select("capability_id, priority").eq("user_id", userId).eq("is_active", true).order("priority"),
-    client.from("growth_gaps").select("title, detail, concept_id, created_at").eq("user_id", userId).eq("gap_type", "knowledge").gte("created_at", since).order("created_at", { ascending: false }),
+    client.from("growth_gaps").select("title, detail, concept_id, created_at").eq("user_id", userId).filter("journey_id", "eq", jid).eq("gap_type", "knowledge").gte("created_at", since).order("created_at", { ascending: false }),
   ]);
   assertNoErrors([capabilitiesResult, categoriesResult, conceptsResult, prerequisitesResult, progressResult, planResult, focusesResult, gapsResult]);
 
@@ -177,8 +180,11 @@ export async function getQuizQueue() {
 
 export async function getStudyHistory() {
   const { supabase, user } = await requireUser();
+  const { data: journey, error } = await supabase.from("learning_journeys").select("id").eq("user_id", user.id).eq("status", "active").maybeSingle();
+  if (error) throw new Error(error.message);
+  if (!journey) return [];
   const [sessionsResult, conceptsResult, capabilitiesResult] = await Promise.all([
-    supabase.from("study_sessions").select("*").eq("user_id", user.id).order("committed_at", { ascending: false }),
+    supabase.from("study_sessions").select("*").eq("user_id", user.id).eq("journey_id", journey.id).order("committed_at", { ascending: false }),
     supabase.from("knowledge_concepts").select("id, concept_code, title_en, title_zh, capability_id"),
     supabase.from("capabilities").select("id, title_en"),
   ]);
@@ -193,5 +199,10 @@ export async function getStudyHistory() {
 
 export async function getStudySession(id: string) {
   const history = await getStudyHistory();
-  return history.find((item) => item.session.id === id) ?? null;
+  const item = history.find((item) => item.session.id === id);
+  if (!item) return null;
+  const { supabase, user } = await requireUser();
+  const attempt = item.session.attempt_id ? await supabase.from("study_attempts").select("teaching_intro, teaching_mode, question_context_markdown, evaluation_context_markdown").eq("id", item.session.attempt_id).eq("user_id", user.id).eq("journey_id", item.session.journey_id).maybeSingle() : { data: null, error: null };
+  if (attempt.error) throw new Error(attempt.error.message);
+  return { ...item, attempt: attempt.data };
 }

@@ -1,6 +1,7 @@
 import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/lib/supabase/database.types";
+import { buildGrowthContext } from "@/features/ai/context-builder";
 import { requireUser } from "@/lib/auth/require-user";
 import type { ReviewPeriod } from "./periods";
 
@@ -39,17 +40,18 @@ export async function buildPeriodContext(
   wideEnd.setUTCDate(wideEnd.getUTCDate() + 1);
   const [profile, state, focuses, daily, sessions, evidence, gaps, progress] = await Promise.all([
     client.from("profiles").select("timezone").eq("id", userId).maybeSingle(),
-    client.from("user_growth_state").select("overall_goal, capability_assessments, strengths, weaknesses, knowledge_gaps, practice_gaps, recent_training_direction, summary").eq("user_id", userId).filter("journey_id", "eq", journey.id).maybeSingle(),
-    client.from("user_focuses").select("priority, capabilities(code, title_en)").eq("user_id", userId).filter("journey_id", "eq", journey.id).eq("is_active", true).order("priority"),
+    client.from("user_growth_state").select("overall_goal, capability_assessments, strengths, weaknesses, knowledge_gaps, practice_gaps, recent_training_direction, summary").eq("user_id", userId).maybeSingle(),
+    client.from("user_focuses").select("priority, capabilities(code, title_en)").eq("user_id", userId).eq("is_active", true).order("priority"),
     client.from("daily_reflections").select("reflection_date, raw_content, analysis, responsibility_hint").eq("user_id", userId).filter("journey_id", "eq", journey.id).gte("reflection_date", period.start).lte("reflection_date", period.end).order("reflection_date"),
     client.from("study_sessions").select("session_type, concept_score, application_score, resulting_status, committed_at, knowledge_concepts(concept_code, title_en, capability_id)").eq("user_id", userId).filter("journey_id", "eq", journey.id).eq("is_valid", true).gte("committed_at", wideStart.toISOString()).lt("committed_at", wideEnd.toISOString()).order("committed_at"),
     client.from("practice_evidence").select("evidence_level, context, user_role, action, decision, outcome, limitations, next_evidence_needed, created_at, capabilities(code, title_en)").eq("user_id", userId).filter("journey_id", "eq", journey.id).eq("review_status", "confirmed").gte("created_at", wideStart.toISOString()).lt("created_at", wideEnd.toISOString()).order("created_at"),
     client.from("growth_gaps").select("gap_type, title, detail, status, created_at, capabilities(code, title_en), knowledge_concepts(concept_code, title_en)").eq("user_id", userId).filter("journey_id", "eq", journey.id).gte("created_at", wideStart.toISOString()).lt("created_at", wideEnd.toISOString()).order("created_at"),
-    client.from("knowledge_progress").select("status, review_count, consecutive_successes, last_concept_score, last_application_score, next_review_at, updated_at, knowledge_concepts(concept_code, title_en, capability_id)").eq("user_id", userId).filter("journey_id", "eq", journey.id),
+    client.from("knowledge_progress").select("status, review_count, consecutive_successes, last_concept_score, last_application_score, next_review_at, updated_at, knowledge_concepts(concept_code, title_en, capability_id)").eq("user_id", userId),
   ]);
   assertResults([profile, state, focuses, daily, sessions, evidence, gaps, progress]);
   const timezone = profile.data?.timezone ?? "Asia/Shanghai";
   return JSON.stringify({
+    personal_teacher_memory: await buildGrowthContext(client, userId),
     period: { start: period.start, end: period.end, timezone },
     growth_state_before_review: state.data,
     current_focus: focuses.data,
